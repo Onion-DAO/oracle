@@ -11,9 +11,9 @@ const log = ( ...comments ) => {
 const require_properties = ( obj={}, required_properties=[] ) => {
 
 	const keys = Object.keys( obj )
-	const contains_all_required = required_properties.every( key => keys.includes( key ) )
-	log( `Checking keys `, keys, `against required: `, contains_all_required, ' for object ', obj )
-	if( !contains_all_required ) throw new Error( `Missing required properties in request` )
+	const missing_keys = required_properties.filter( key => keys.includes( key ) )
+	log( `Checking keys `, keys, `against required: `, required_properties, ' for object ', obj, `missing: `, missing_keys )
+	if( !missing_keys.length ) throw new Error( `Missing required properties in request: ${ missing_keys.join( ', ' ) }` )
 
 }
 

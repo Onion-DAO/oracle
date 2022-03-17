@@ -5,8 +5,10 @@ const { db, arrayUnion } = require( '../modules/firebase' )
 const { check_port_availability } = require( '../modules/network' )
 
 /* ///////////////////////////////
-// Sementic endpoints
+// Semantic endpoints
 // /////////////////////////////*/
+route.get( '/', ( req, res ) => res.send( 'This is the OnionDAO.eth API' ) )
+
 route.post( '/', async ( req, res ) => {
 
 	try {
@@ -16,12 +18,11 @@ route.post( '/', async ( req, res ) => {
 
 		// Property validations
 		const expected_properties = [ 'ip', 'email', 'bandwidth', 'reduced_exit_policy', 'node_nickname', 'wallet' ]
+		log( `Request received with body: `, typeof req.body, JSON.stringify( req.body ) )
 		require_properties( req.body, expected_properties )
 		allow_only_these_properties( req.body, expected_properties )
 
-		// Validation regexes
-
-		
+		// Validation regexes		
 		const ipv4_regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ // // https://www.oreilly.com/library/view/regular-expressions-cookbook/9780596802837/ch07s16.html
 		const email_regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/i // https://emailregex.com/
 		const tor_nickname_regex = /^\w{1,19}$/ // https://tpo.pages.torproject.net/core/doc/tor/nickname_8h.html
@@ -31,6 +32,7 @@ route.post( '/', async ( req, res ) => {
 
 		// Validate input
 		const { ip, email, bandwidth, reduced_exit_policy, node_nickname, wallet } = req.body
+		if( req.ip != ip ) throw new Error( `You may only register your node from the device that is the node` )
 		if( !`${ ip }`.match( ipv4_regex ) ) throw new Error( `Invalid ipv4 input` )
 		if( !`${ email }`.match( email_regex ) ) throw new Error( `Invalid email input` )
 		if( !`${ bandwidth }`.match( bandwidth_regex ) ) throw new Error( `Invalid bandwidth submission` )

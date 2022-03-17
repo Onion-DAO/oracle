@@ -8,11 +8,9 @@ To configure Firebase services:
 
 To Configure backend:
 
-1. Set keys 
+1. Set environment keys
+	- `firebase functions:config:set environment.verbose=true`
 1. `firebase functions:config:get > .runtimeconfig.json`
-
-To enable verbose logging, edit `.runtimeconfig.json` to set `environment.verbose="true"`.
-
 ## Backend usage
 
 1. `cd functions`
