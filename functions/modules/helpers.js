@@ -12,7 +12,7 @@ const require_properties = ( obj={}, required_properties=[] ) => {
 
 	const keys = Object.keys( obj )
 	const missing_keys = required_properties.filter( key => keys.includes( key ) )
-	log( `Checking keys `, keys, `against required: `, required_properties, ' for object ', obj, `missing: `, missing_keys )
+	if( missing_keys.length ) log( `Checking keys `, keys, `against required: `, required_properties, ' for object ', obj, `missing: `, missing_keys )
 	if( !missing_keys.length ) throw new Error( `Missing required properties in request: ${ missing_keys.join( ', ' ) }` )
 
 }
@@ -22,7 +22,7 @@ const allow_only_these_properties = ( obj, allowed_properties ) => {
 
 	const keys = Object.keys( obj )
 	const unknownProperties = keys.filter( key => !allowed_properties.includes( key ) )
-	log( `Checking keys `, keys, `for non-allowed, found: `, unknownProperties )
+	if( unknownProperties.length ) log( `Checking keys `, keys, `for non-allowed, found: `, unknownProperties )
 	if( unknownProperties.length ) throw new Error( `Unknown properties given: ${ unknownProperties.join( ', ' ) }` )
 
 }
