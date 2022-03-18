@@ -1,7 +1,7 @@
 const { Socket } = require( 'net' )
 const { log } = require( './helpers' )
 
-const check_port_availability = async ( host, port, timeout_in_ms=5000 ) => new Promise( ( resolve, reject ) => {
+const check_port_availability = async ( host, port, timeout_in_ms=10000 ) => new Promise( ( resolve, reject ) => {
 
 	// Open a socket
 	const socket = new Socket()
