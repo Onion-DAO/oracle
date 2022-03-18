@@ -18,7 +18,7 @@ route.post( '/', async ( req, res ) => {
 
 		// Property validations
 		const expected_properties = [ 'ip', 'email', 'bandwidth', 'reduced_exit_policy', 'node_nickname', 'wallet' ]
-		log( `Request received with body: `, typeof req.body, JSON.stringify( req.body ) )
+		log( `Request received with body: `, typeof req.body, JSON.stringify( req.body ), ' ip: ', req.ip, req.ips )
 		require_properties( req.body, expected_properties )
 		allow_only_these_properties( req.body, expected_properties )
 
