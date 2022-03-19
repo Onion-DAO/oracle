@@ -4,11 +4,38 @@ const { log, require_properties, allow_only_these_properties } = require( '../mo
 const { db, arrayUnion, dataFromSnap } = require( '../modules/firebase' )
 const { check_port_availability } = require( '../modules/network' )
 const fetch = require( 'isomorphic-fetch' )
+const { ipv4_regex, email_regex, tor_nickname_regex, bandwidth_regex, reduced_exit_policy_regex, wallet_or_ens_regex } = require( '../modules/regex' )
 
 /* ///////////////////////////////
 // Semantic endpoints
 // /////////////////////////////*/
 route.get( '/', ( req, res ) => res.send( 'This is the OnionDAO.eth API' ) )
+
+route.get( '/:node_ip', async ( req, res ) => {
+
+	try {
+
+		const { node_ip } = req.params
+
+		// Validations
+		if( !`${ node_ip }`.match( ipv4_regex ) ) throw new Error( `Invalid ipv4 input` )
+
+		// Check database
+		const node_entry = await db.collection( 'tor_nodes' ).doc( node_ip ).get()
+		if( !node_entry.exists ) throw new Error( `This ipv4 is not registered as an OnionDAO node. Should it be? Ask @actuallymentor for help on Twitter.` )
+
+		const node_entry_data = dataFromSnap( node_entry )
+		const { created_human, wallet } = node_entry_data
+
+		log( `Data for ${ node_ip }: `, JSON.stringify( node_entry_data ) )
+		return res.send( `✅ This node belongs to ${ wallet } and was registered with the Oracle on ${ created_human }.` )
+
+
+	} catch( e ) {
+		return res.send( `🛑 Node irregularity: ${ e.message }` )
+	}
+
+} )
 
 route.post( '/', async ( req, res ) => {
 
@@ -23,14 +50,6 @@ route.post( '/', async ( req, res ) => {
 		log( `Request received with body: `, typeof req.body, JSON.stringify( req.body ), ' ip: ', req.ip, req.ips, req.headers[ 'x-appengine-user-ip' ], Object.keys( req.headers ).concat( ', ' ) )
 		require_properties( req.body, expected_properties )
 		allow_only_these_properties( req.body, [ ...expected_properties, ...optional_properties ] )
-
-		// Validation regexes		
-		const ipv4_regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ // // https://www.oreilly.com/library/view/regular-expressions-cookbook/9780596802837/ch07s16.html
-		const email_regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/i // https://emailregex.com/
-		const tor_nickname_regex = /^\w{1,19}$/ // https://tpo.pages.torproject.net/core/doc/tor/nickname_8h.html
-		const bandwidth_regex = /^\d{1,64}$/ // Number in TB
-		const reduced_exit_policy_regex = /^[yn]{1}$/i
-		const wallet_or_ens_regex = /^0x[a-z-0-9]{40}|\w{1,255}\.eth$/i // https://eips.ethereum.org/EIPS/eip-137#:~:text=Labels%20and%20domains%20may%20be,no%20more%20than%20255%20characters.
 
 		// Validate input
 		const { ip, email, bandwidth, reduced_exit_policy, node_nickname, wallet, twitter } = req.body
@@ -87,7 +106,7 @@ route.post( '/', async ( req, res ) => {
 		log( `Node route error: `, e )
 
 		// Return plaintext error message
-		return res.send( `🚨 OnionDAO Oracle error: ${ e.message }` )
+		return res.send( `🛑 OnionDAO Oracle error: ${ e.message }` )
 
 	}
 
