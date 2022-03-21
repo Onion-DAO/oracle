@@ -1,4 +1,4 @@
-name: Deploy Frontend on push/merge
+name: Deploy website on push/merge
 
 # Only trigger on PR/push and only for frontend files
 on:
