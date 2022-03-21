@@ -1,0 +1,133 @@
+$background-color: #efefef
+
+body 
+	// Override browser default padding and margin
+	margin: 0
+	padding: 0
+	// Set font globally
+	font-family: 'monospace', sans-serif
+	font-weight: 300
+	font-display: swap
+	// Sticky the footer
+	display: flex
+	min-height: 100vh
+	flex-direction: column
+	// Backgorund color
+	background: $background-color
+	// Box sizing
+	* 
+		box-sizing: border-box
+
+
+main 
+	// make footer sticky
+	flex: 1 0 auto
+	// Vertically align content
+	display: flex
+	align-items: center
+	justify-content: flex-start
+	flex-direction: column
+
+
+#footer 
+	// make the copyright notics less in your face
+	text-align: center
+	padding: 10px
+	opacity: 0.6
+	font-size: 13px
+
+/* ///////////////////////////////
+// Global text
+// /////////////////////////////*/
+h1
+	font-size: 5rem
+
+a.button
+	display: inline-block
+	background: black
+	color: white
+	padding: 1rem
+	text-decoration: none
+	margin-top: 2rem
+
+// ///////////////////////////////
+// Index page
+// ///////////////////////////////
+#index
+
+	section
+		position: relative
+		display: flex
+		flex-direction: column
+		align-items: center
+		justify-content: center
+		width: 100%
+		min-height: 300px
+		padding: 4rem 1rem
+
+		&:nth-child(2n+1)
+			background: rgba( 0,0,0, .05 )
+			box-shadow: 0px 0 20px 2px rgba( 0, 0, 0, .2)
+		&:first-child
+			text-align: left
+			padding: 0
+			margin-top: 0
+			max-width: 100%
+
+		h2
+			border-bottom: 1px solid black
+			padding-bottom: 2rem
+
+	.stretch
+		position: absolute
+		z-index: -1
+		overflow: hidden
+		min-width: 100%
+		min-height: 100%
+	.circle
+		border-radius: 50%
+		height: 100%
+		width: 100%
+		margin-bottom: 3rem
+
+	#hero
+
+		padding: 2rem 1rem
+		width: 100%
+		height: 800px
+		max-height: 90vh
+		background: black
+	
+		h1, h2, a, p
+			background: rgba( 0,0,0,.9 )
+			color: white
+			padding: 1rem
+			text-align: center
+			max-width: 600px
+	#intro
+		p
+			max-width: 500px
+			text-align: center
+			font-size: 1.5rem
+
+	.usps
+		flex-direction: row
+		flex-wrap: wrap
+
+		.usp
+			width: 300px
+			max-width: 100%
+			padding: 1rem
+			text-align: center
+			p
+				&:first-child
+					font-size: 4rem
+					margin: 0
+				&:nth-child( 2 )
+					font-size: 1.2rem
+
+
+	#cta
+		#compressed
+			height: 100px
+			width: 100px

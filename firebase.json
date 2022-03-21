@@ -5,6 +5,7 @@
   },
   "functions": { },
   "hosting": {
+    "public": "website/docs",
     "rewrites": [
       { "source": "/api/**", "function": "public_api" }
     ]
