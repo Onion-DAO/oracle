@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [ closed ]
     branches:
-      - master
+      - main
     paths:
       - 'website/*.json'
       - 'website/*.js'
@@ -17,7 +17,7 @@ on:
   # Trigger on push to master (edge case, local merge)
   push:
     branches:
-      - master
+      - main
     paths:
       - 'website/*.json'
       - 'website/*.js'
