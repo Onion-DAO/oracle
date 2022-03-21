@@ -42,4 +42,5 @@ jspm_packages
 
 # Public dir
 public/*
+docs/*
 .env

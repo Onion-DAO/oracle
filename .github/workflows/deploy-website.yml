@@ -3,24 +3,27 @@ name: Deploy Frontend on push/merge
 # Only trigger on PR/push and only for frontend files
 on:
   # Trigger on PR close
-  # pull_request:
-  #   types: [ closed ]
-  #   paths:
-  #     - 'src/**'
-  #     - 'modules/**'
-  #   branches:
-  #     - master
+  pull_request:
+    types: [ closed ]
+    branches:
+      - master
+    paths:
+      - 'website/*.json'
+      - 'website/*.js'
+      - 'website/src/**'
+      - 'website/modules/**'
+      - '.github/workflows/deploy-website.yml'
   
   # Trigger on push to master (edge case, local merge)
   push:
     branches:
       - master
     paths:
-      - '*.json'
-      - '*.js'
-      - 'src/**'
-      - 'modules/**'
-      - '.github/workflows/deploy-to-firebase.yml'
+      - 'website/*.json'
+      - 'website/*.js'
+      - 'website/src/**'
+      - 'website/modules/**'
+      - '.github/workflows/deploy-website.yml'
 
 jobs:
   # Build the frontend giles
