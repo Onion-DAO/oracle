@@ -37,6 +37,40 @@ route.get( '/:node_ip', async ( req, res ) => {
 
 } )
 
+route.get( '/list/:property', async ( req, res ) => {
+
+	try {
+
+		// WHen running publicly, expose no data (TODO: add node count in a scalable way)
+		if( !process.env.development ) return res.send( `This is a private endpoint sorry` )
+
+		// Get all node data
+		const nodes = await db.collection( 'tor_nodes' ).get().then( dataFromSnap )
+
+		// If running privately, allow the exposing of detailed data
+		const { property } = req.params
+
+		// If no property was specified, send back raw data
+		if( property == 'raw' ) return res.json( nodes )
+
+		// Manual filters
+		if( property == 'amount' ) return res.send( `Tor node amount: ${nodes.length}` )
+
+		// If a specific property was requested, filter it
+		let filtered_data = nodes.map( node => node[ property ] ).filter( data => !!data )
+
+		// Manipulations
+		if( property == 'twitter' ) filtered_data = filtered_data.map( entry => entry.includes( '@' ) ? entry : `@${ entry }` )
+
+		return res.send( filtered_data.join( '\n' ) )
+
+
+	} catch( e ) {
+		return res.send( `🛑 Node list error: ${ e.message }` )
+	}
+
+} )
+
 route.post( '/', async ( req, res ) => {
 
 	try {
