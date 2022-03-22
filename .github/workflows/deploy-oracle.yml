@@ -49,7 +49,7 @@ jobs:
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
-          args: deploy
+          args: deploy --only=functions
         env:
           GCP_SA_KEY: ${{ secrets.SERVICE_ACCOUNT_PRODUCTION }}
 
