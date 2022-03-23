@@ -2,7 +2,6 @@ head
 	meta( charset='utf-8' )
 	meta( http-equiv="x-ua-compatible" content="ie=edge" )
 	meta( name="viewport" content="width=device-width, initial-scale=1" )
-	base( href=site.system.url )
 	meta( name="robots" content="index,follow,noodp" )
 	meta( name="googlebot" content="index,follow" )
 	if site.track.gverification
@@ -36,7 +35,7 @@ head
 	//- Load essential css
 	style( type="text/css" charset="utf-8" )!=css
 	//- Load the main css stylesheet if there is no js support
-	noscript: link( rel="stylesheet" type="text/css" href=site.system.url + 'assets/css/styles.css?t=' + site.system.timestamp )
+	noscript: link( rel="stylesheet" type="text/css" href='./assets/css/styles.css?t=' + site.system.timestamp )
 
 	//- Load the main css stylesheet if there is js support
 	//- Async loading of css and fonts
@@ -48,8 +47,8 @@ head
 			link.rel = "stylesheet"
 			document.getElementsByTagName( "head" )[0].appendChild( link )
 		}
-		loadAsync( "#{ site.system.url + 'assets/css/styles.css?t=' + site.system.timestamp }", "text/css" )
+		loadAsync( "#{'./assets/css/styles.css?t=' + site.system.timestamp }", "text/css" )
 		// loadAsync( "https://fonts.googleapis.com/css?family=Roboto:300&display=swap", "" )
 
 	//- Get the webpack script
-	script( src=site.system.url + `assets/js/app-${site.system.timestamp}.js` , async)
+	script( src=`./assets/js/main.js?nonce=${site.system.timestamp}` , async)

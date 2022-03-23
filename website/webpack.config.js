@@ -97,13 +97,15 @@ if ( dev ) watch( `${ site.system.source }/assets`, { recursive: true }, async (
 
 module.exports = async f => {
 
+  console.log( site )
+
   await Promise.all( [ publishpug( site ), publishassets( site ), css( site ) ] )
 
   return {
     entry: site.system.source + 'js/main.js',
     mode: NODE_ENV,
     output: {
-      filename: `app-${site.system.timestamp}.js`,
+      filename: `main.js`,
       path: `${site.system.public}assets/js/`
     },
     module: {
