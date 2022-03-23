@@ -1,3 +1,7 @@
-import { log } from './modules/helpers'
+import display_tor_stats from './modules/tor_nodes'
 
-log( 'I am alive' )
+window.onload = f => {
+
+	display_tor_stats()
+
+}
