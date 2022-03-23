@@ -5,11 +5,72 @@ const { db, arrayUnion, dataFromSnap } = require( '../modules/firebase' )
 const { check_port_availability } = require( '../modules/network' )
 const fetch = require( 'isomorphic-fetch' )
 const { ipv4_regex, email_regex, tor_nickname_regex, bandwidth_regex, reduced_exit_policy_regex, wallet_or_ens_regex } = require( '../modules/regex' )
+const { register_total_tor_exit_nodes } = require( '../daemons/tor_nodes' )
 
 /* ///////////////////////////////
 // Semantic endpoints
 // /////////////////////////////*/
 route.get( '/', ( req, res ) => res.send( 'This is the OnionDAO.eth API' ) )
+
+route.get( '/list/:property', async ( req, res ) => {
+
+	try {
+
+		// If running privately, allow the exposing of detailed data
+		const { property } = req.params
+
+		// WHen running publicly, expose only ip addresses
+		if( !process.env.development && property != 'ip' ) return res.send( `This is a private endpoint sorry` )
+
+		// Get all node data
+		const nodes = await db.collection( 'tor_nodes' ).get().then( dataFromSnap )
+
+		// If no property was specified, send back raw data
+		if( property == 'raw' ) return res.json( nodes )
+
+		// Manual filters
+		if( property == 'amount' ) return res.send( `Tor node amount: ${nodes.length}` )
+
+		// If a specific property was requested, filter it
+		let filtered_data = nodes.map( node => node[ property ] ).filter( data => !!data )
+
+		// Manipulations
+		if( property == 'twitter' ) filtered_data = filtered_data.map( entry => entry.includes( '@' ) ? entry : `@${ entry }` )
+
+		return res.json( filtered_data )
+
+
+	} catch( e ) {
+		return res.json( { error: `🛑 Node list error: ${ e.message }` } )
+	}
+
+} )
+
+route.get( '/metrics/', async ( req, res ) => {
+
+	try {		
+
+		// Get all node data
+		let tor_node_metrics = await db.collection( 'metrics' ).doc( 'tor_nodes' ).get().then( dataFromSnap )
+
+		// If data is old, refresh. Not relying on cron because it is a recurring cost on firebase
+		const one_day_in_ms = 1000 * 60 * 60 * 24
+		const one_day_ago = Date.now() - one_day_in_ms
+		if( tor_node_metrics.updated < one_day_ago ) {
+			tor_node_metrics = await register_total_tor_exit_nodes()
+		}
+
+		// Send response as json
+		return res.json( tor_node_metrics )
+
+
+	} catch( e ) {
+		return res.json( {
+			error: `Metrics error: ${ e.message }`
+		} )
+	}
+
+} )
 
 route.get( '/:node_ip', async ( req, res ) => {
 
@@ -33,40 +94,6 @@ route.get( '/:node_ip', async ( req, res ) => {
 
 	} catch( e ) {
 		return res.send( `🛑 Node irregularity: ${ e.message }` )
-	}
-
-} )
-
-route.get( '/list/:property', async ( req, res ) => {
-
-	try {
-
-		// WHen running publicly, expose no data (TODO: add node count in a scalable way)
-		if( !process.env.development ) return res.send( `This is a private endpoint sorry` )
-
-		// Get all node data
-		const nodes = await db.collection( 'tor_nodes' ).get().then( dataFromSnap )
-
-		// If running privately, allow the exposing of detailed data
-		const { property } = req.params
-
-		// If no property was specified, send back raw data
-		if( property == 'raw' ) return res.json( nodes )
-
-		// Manual filters
-		if( property == 'amount' ) return res.send( `Tor node amount: ${nodes.length}` )
-
-		// If a specific property was requested, filter it
-		let filtered_data = nodes.map( node => node[ property ] ).filter( data => !!data )
-
-		// Manipulations
-		if( property == 'twitter' ) filtered_data = filtered_data.map( entry => entry.includes( '@' ) ? entry : `@${ entry }` )
-
-		return res.send( filtered_data.join( '\n' ) )
-
-
-	} catch( e ) {
-		return res.send( `🛑 Node list error: ${ e.message }` )
 	}
 
 } )
