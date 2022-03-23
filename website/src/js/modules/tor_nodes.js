@@ -5,7 +5,7 @@ export default async function display_tor_stats() {
 	try {
 
 		// Get metrics from api
-		const metrics = await fetch( `http://oniondao.web.app/api/tor_nodes/metrics` ).then( res => res.json() )
+		const metrics = await fetch( `https://oniondao.web.app/api/tor_nodes/metrics` ).then( res => res.json() )
 		log( `Retreived metrics: `, metrics )
 
 		/* ///////////////////////////////
