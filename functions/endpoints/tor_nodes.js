@@ -54,9 +54,9 @@ route.get( '/metrics/', async ( req, res ) => {
 		let tor_node_metrics = await db.collection( 'metrics' ).doc( 'tor_nodes' ).get().then( dataFromSnap )
 
 		// If data is old, refresh. Not relying on cron because it is a recurring cost on firebase
-		const one_day_in_ms = 1000 * 60 * 60 * 24
-		const one_day_ago = Date.now() - one_day_in_ms
-		if( tor_node_metrics.updated < one_day_ago ) {
+		const five_minutes_in_ms = 1000 * 60 * 5
+		const five_minutes_ago = Date.now() - five_minutes_in_ms
+		if( tor_node_metrics.updated < five_minutes_ago ) {
 			tor_node_metrics = await register_total_tor_exit_nodes()
 		}
 
