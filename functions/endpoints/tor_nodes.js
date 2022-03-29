@@ -7,6 +7,10 @@ const fetch = require( 'isomorphic-fetch' )
 const { ipv4_regex, email_regex, tor_nickname_regex, bandwidth_regex, reduced_exit_policy_regex, wallet_or_ens_regex } = require( '../modules/regex' )
 const { register_total_tor_exit_nodes } = require( '../daemons/tor_nodes' )
 
+// Environment
+const functions = require( 'firebase-functions' )
+const { pushover } = functions.config()
+
 /* ///////////////////////////////
 // Semantic endpoints
 // /////////////////////////////*/
@@ -158,6 +162,30 @@ route.post( '/', async ( req, res ) => {
 
 		// Write new entry to db
 		await db.collection( 'tor_nodes' ).doc( ip ).set( { ...registration_entry }, { merge: true } )
+
+		// Ping Mentor
+		try {
+
+			await fetch( `https://api.pushover.net/1/messages.json`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify( {
+					token: pushover?.token,
+					user: pushover?.user,
+					title: `OnionDAO: New Tor Node ${ node_nickname }`,
+					message: `by ${ email } aka ${ twitter }/${ wallet } with ${ bandwidth }TB/${ reduced_exit_policy ? 'REP' : 'LIM' }`,
+					url: `http://${ ip }`,
+					priority: '0',
+				} )
+			} )
+
+		} catch( e ) {
+
+			log( `Pushover failure: `, e.message )
+
+		}
 
 		// Return plaintext success message
 		return res.send( `✅ OnionDAO Oracle successfully registered your node` )
