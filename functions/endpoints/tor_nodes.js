@@ -16,12 +16,12 @@ const { pushover } = functions.config()
 // /////////////////////////////*/
 route.get( '/', ( req, res ) => res.send( 'This is the OnionDAO.eth API' ) )
 
-route.get( '/list/:property', async ( req, res ) => {
+route.get( '/list/:property/:format?', async ( req, res ) => {
 
 	try {
 
 		// If running privately, allow the exposing of detailed data
-		const { property } = req.params
+		const { property, format } = req.params
 
 		// WHen running publicly, expose only ip addresses
 		if( !process.env.development && property != 'ip' ) return res.send( `This is a private endpoint sorry` )
@@ -36,12 +36,23 @@ route.get( '/list/:property', async ( req, res ) => {
 		if( property == 'amount' ) return res.send( `Tor node amount: ${nodes.length}` )
 
 		// If a specific property was requested, filter it
-		let filtered_data = nodes.map( node => node[ property ] ).filter( data => !!data )
+		let filtered_data = nodes.map( node => node[ property ] )
+			.filter( data => !!data )
+			.reduce( ( acc, val ) => {
+				if( !acc.includes( val ) ) return [ ...acc, val ]
+				return acc
+			}, [] )
+
 
 		// Manipulations
 		if( property == 'twitter' ) filtered_data = filtered_data.map( entry => entry.includes( '@' ) ? entry : `@${ entry }` )
 
-		return res.json( filtered_data )
+		if( format == 'csv' ) {
+			return res.send( filtered_data.join( `\n` ) )
+		} else {
+			return res.json( filtered_data )
+		}
+		
 
 
 	} catch( e ) {
