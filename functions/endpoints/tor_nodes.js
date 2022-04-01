@@ -136,7 +136,7 @@ route.post( '/', async ( req, res ) => {
 		// Check that the Tor Exit notice page contains the claimed addresses
 		const exit_notice_html = await fetch( `http://${ ip }` ).then( res => res.text() )
 		if( !exit_notice_html.includes( wallet ) ) throw new Error( `Exit notice page does not include the claimed wallet address` )
-		if( !exit_notice_html.includes( email ) ) throw new Error( `Exit notice page does not include the claimed email address` )
+		// if( !exit_notice_html.includes( email ) ) throw new Error( `Exit notice page does not include the claimed email address` )
 
 		// Register node in Firestore
 		const node_object = expected_properties.reduce( ( acc, val ) => ( { ...acc, [val]: req.body[ val ] } ), {} )
