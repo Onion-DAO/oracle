@@ -24,7 +24,8 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 		const { property, format } = req.params
 
 		// WHen running publicly, expose only ip addresses
-		if( !process.env.development && property != 'ip' ) return res.send( `This is a private endpoint sorry` )
+		const public_properties = [ 'ip', 'wallet' ]
+		if( !process.env.development && !public_properties.includes( property ) ) return res.send( `This is a private endpoint sorry` )
 
 		// Get all node data
 		const nodes = await db.collection( 'tor_nodes' ).get().then( dataFromSnap )
