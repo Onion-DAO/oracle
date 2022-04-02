@@ -39,6 +39,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 		// If a specific property was requested, filter it
 		let filtered_data = nodes.map( node => node[ property ] )
 			.filter( data => !!data )
+			.map( entry => entry.toLowerCase() )
 			.reduce( ( acc, val ) => {
 				if( !acc.includes( val ) ) return [ ...acc, val ]
 				return acc
