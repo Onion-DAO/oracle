@@ -110,9 +110,19 @@ a.button
 
 	#hero
 
-		padding: 2rem 1rem
+		$logo-size: 150px
+
+		#logo
+			position: absolute
+			width: $logo-size
+			height: $logo-size
+			bottom: calc( -1 * $logo-size/2 )
+		margin-bottom: calc( $logo-size/2 )
+
+		position: relative
+		padding: 2rem 2rem 150px 2rem
 		width: 100%
-		height: 600px
+		min-height: 600px
 		max-height: 90vh
 		background: black
 
