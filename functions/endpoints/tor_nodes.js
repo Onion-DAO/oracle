@@ -1,6 +1,6 @@
 const { Router } = require( 'express' )
 const route = Router()
-const { log, require_properties, allow_only_these_properties } = require( '../modules/helpers' )
+const { dev, log, require_properties, allow_only_these_properties } = require( '../modules/helpers' )
 const { db, arrayUnion, dataFromSnap } = require( '../modules/firebase' )
 const { check_port_availability } = require( '../modules/network' )
 const fetch = require( 'isomorphic-fetch' )
@@ -69,11 +69,13 @@ route.get( '/metrics/', async ( req, res ) => {
 
 		// Get all node data
 		let tor_node_metrics = await db.collection( 'metrics' ).doc( 'tor_nodes' ).get().then( dataFromSnap )
+		log( `Existing metrics: `, tor_node_metrics )
 
 		// If data is old, refresh. Not relying on cron because it is a recurring cost on firebase
 		const five_minutes_in_ms = 1000 * 60 * 5
 		const five_minutes_ago = Date.now() - five_minutes_in_ms
-		if( tor_node_metrics.updated < five_minutes_ago ) {
+		if( dev || tor_node_metrics.updated < five_minutes_ago ) {
+			log( `Getting remote Tor metrics` )
 			tor_node_metrics = await register_total_tor_exit_nodes()
 		}
 
