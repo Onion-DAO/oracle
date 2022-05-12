@@ -50,7 +50,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 		if( property == 'twitter' ) filtered_data = filtered_data.map( entry => entry.includes( '@' ) ? entry : `@${ entry }` )
 
 		if( format == 'csv' ) {
-			return res.send( filtered_data.join( `\n` ) )
+			return res.send( `<body><p>${filtered_data.join( `\n<br />` )}</p></body>` )
 		} else {
 			return res.json( filtered_data )
 		}
