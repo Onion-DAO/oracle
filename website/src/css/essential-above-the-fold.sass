@@ -45,7 +45,7 @@ main
 h1
 	font-size: 5rem
 
-a.button
+a.button, button.button
 	display: inline-block
 	background: black
 	border: 2px solid black
@@ -96,8 +96,9 @@ a.button
 			max-width: 100%
 
 		h2
-			border-bottom: 1px solid black
-			padding-bottom: 2rem
+			font-size: 1.75rem
+			border-bottom: 2px solid black
+			padding-bottom: 0.75rem
 
 	.stretch
 		position: absolute
@@ -129,7 +130,7 @@ a.button
 		max-height: 90vh
 		background: black
 
-		h1
+		h1, h2, a, p
 			margin: 1rem 0
 	
 		h1, h2, p
@@ -138,11 +139,41 @@ a.button
 			padding: 1rem
 			text-align: center
 			max-width: 600px
+
+		h1
+			margin: 1rem 0 0 0
+			padding-bottom: 0
+
+		p
+			font-size: 1.5rem
+			padding-top: 0
+			margin-top: 0
+
+		.globalmetics
+			color: white
+			.tor-node-count 
+				font-weight: bold
+	
+
 	#intro
+		
 		p
 			max-width: 500px
 			text-align: center
 			font-size: 1.5rem
+			margin-top: 0
+
+		.status-container
+			display: flex
+			align-items: center
+			justify-content: center
+			padding: .5rem
+			max-width: 750px
+			min-height: 50px
+			min-width: 400px
+			margin-bottom: 1.5rem
+
+			.client-metric
 
 	.usps
 		flex-direction: row
@@ -187,3 +218,26 @@ a.button
 			margin: 2rem
 			width: 300px!important
 			max-width: 100%
+
+#nodeForm
+	display: flex
+	flex-direction: row
+
+	.button
+		margin: 0
+		border: 0
+		text-transform: uppercase
+		font-weight: bold
+		
+
+	label
+		display: flex
+		flex-direction: column
+		align-items: center
+	
+
+		input
+			padding: 0.75rem
+			border-radius: 0
+			padding: 1rem
+			box-shadow: none

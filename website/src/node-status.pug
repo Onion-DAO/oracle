@@ -1,0 +1,56 @@
+//- --------------------------------
+//- HiPew settings
+//- --------------------------------
+
+//- This is pace-specific metadata
+-
+	const page = {
+		title: 'OnionDAO Node status', desc: 'Adding incentive layers to public goods', url: '/node-status',
+		published: '2022-04-03',
+		// featuredimg: '/assets/robert-katzki-jbtfM0XBeRc-unsplash.jpg'
+	}
+//- This is a file with helpers
+include pug/_helpers.pug
+
+
+//- --------------------------------
+//- Webpage source code
+//- --------------------------------
+
+doctype html
+html( lang=content.lang )
+	include pug/_header.pug
+	body#index
+		
+		main
+			section#hero
+				h1 Onion DAO
+				p Node status
+				div.globalmetics 🌐 active nodes: 
+					span.metric.tor-node-count 
+					|  (
+					span.metric.tor-contribution-percentage
+					| ).
+
+			section#intro
+				h2 Check node
+				p Use your node ip to check for registration
+				form#nodeForm
+					label
+						input( type=search placeholder="1.2.3.4" id="clientIp")
+					button(type=submit).button Check node
+
+				br 
+
+				div.status-container 
+					span.client-metric.tor-contribution-status
+
+			section#cta
+				h2 Join us
+				section.usps
+					div.usp
+						a( href="https://discord.com/invite/rocketeers" )
+							img( src="/assets/discord-logo-black.svg" )
+						p Join us in the Rocketeer discord in channel <a href="https://discord.com/invite/rocketeers">「🧅」onion-dao</a>
+
+		include pug/_footer.pug

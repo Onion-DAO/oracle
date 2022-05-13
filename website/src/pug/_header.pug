@@ -47,8 +47,8 @@ head
 			link.rel = "stylesheet"
 			document.getElementsByTagName( "head" )[0].appendChild( link )
 		}
-		loadAsync( "#{'./assets/css/styles.css?t=' + site.system.timestamp }", "text/css" )
+		loadAsync( "#{'../assets/css/styles.css?t=' + site.system.timestamp }", "text/css" )
 		// loadAsync( "https://fonts.googleapis.com/css?family=Roboto:300&display=swap", "" )
 
 	//- Get the webpack script
-	script( src=`./assets/js/main.js?nonce=${site.system.timestamp}` , async)
+	script( src=`../assets/js/main.js?nonce=${site.system.timestamp}` , async)
