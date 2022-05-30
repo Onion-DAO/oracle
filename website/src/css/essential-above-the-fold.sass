@@ -21,6 +21,48 @@ body
 	* 
 		box-sizing: border-box
 
+header
+	position: fixed
+	z-index: 1
+	top: 0
+	display: flex
+	align-items: center
+	width: 100%
+	min-height: 60px
+	color: white
+	background: black
+
+	a
+		color: white
+		text-decoration: none
+
+	.name
+		font-size: 1.25rem
+		font-weight: 700
+		display: flex
+		align-items: center
+		margin-left: 1rem
+
+	.navbar
+		flex: 1
+		display: flex
+		align-items: center
+		justify-content: space-between
+		min-height: 60px
+
+		ul li 
+			width: fit-content
+
+		#menu
+			display: none
+
+			&.is-active
+				display: block
+
+			list-style: none
+			padding: 0
+			margin: 1rem
+		
 
 main 
 	// make footer sticky
@@ -30,6 +72,7 @@ main
 	align-items: center
 	justify-content: flex-start
 	flex-direction: column
+	overflow: hidden
 
 
 #footer 
