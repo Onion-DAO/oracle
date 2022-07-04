@@ -19,8 +19,10 @@ include pug/_helpers.pug
 
 doctype html
 html( lang=content.lang )
-	include pug/_header.pug
+	include pug/_head.pug
 	body#index
+		
+		include pug/_header.pug
 		
 		main
 			section#hero
