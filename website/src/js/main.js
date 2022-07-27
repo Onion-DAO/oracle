@@ -1,33 +1,36 @@
 import { log } from './modules/helpers'
+import { header } from './layout/header'
 import display_tor_stats from './modules/tor_nodes'
 import get_dao_node_stats from './modules/onion_nodes_status'
 
 window.onload = f => {
 
+	header()
+
 	display_tor_stats()
-	
 	
 }
 
-// Listing for form input
-document.querySelector('#nodeForm').addEventListener('submit', (e)=> {
-	// prevents page reloading
-	e.preventDefault() 
+if ( document.querySelector( '#nodeForm' ) !== null ) {
 
-	// Get input from form
-	const input = document.querySelector('#clientIp')
+	document.querySelector( '#nodeForm' ).addEventListener( 'submit', (e)=> {
 
-	// Trim any spaces before or after input
-	const trimmed = input.value.trim()
-  
-	// If Value is trimmed continue
-	if (trimmed) {
+		e.preventDefault() 
 
-		// Get node value from input
-		get_dao_node_stats(input.value)
+		const input = document.querySelector( '#clientIp' )
+		const valueTrimmed = input.value.trim()
 
-		// For testing purposes
-		log('client info retrieved')
-	}
-	return false
-})
+		if( valueTrimmed !== null && valueTrimmed !== '' ) {
+
+			get_dao_node_stats( valueTrimmed )
+
+		} else {
+
+			log( `input is empty, no need for api` )
+
+		}
+
+		return false
+
+	})
+}
