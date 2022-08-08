@@ -9,14 +9,6 @@ on:
       - '.firebaserc'
       - '.github/workflows/deploy-oracle.yml'
       - 'functions/**'
-  pull_request:
-    types: [ closed ]
-    branches:
-      - main
-    paths:
-      - '.firebaserc'
-      - '.github/workflows/deploy-oracle.yml'
-      - 'functions/**'
 
 jobs:
   build:
