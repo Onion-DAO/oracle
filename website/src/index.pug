@@ -28,18 +28,49 @@ html( lang=content.lang )
 			section#hero
 				h1 Onion DAO
 				h2 Adding incentive layers to public goods.
-				a( href='#join' ).button.white Join the DAO, earn POAPs
+				a( href='#rewards' ).button.white Join the DAO, earn rewards
 				img#logo( src='/assets/logo.svg' )
 
 			section#intro
 				h2 The Goal of Onion DAO
-				p We reward the support of underfunded public goods with POAPs (and later  erc20s).
-				p Because good behaviour deserves to be rewarded.
+				p We reward the support of underfunded public goods, because good behaviour deserves to be rewarded.
 				// p Onion DAO recognises that public goods run by volunteers result in suboptimal support for said public goods.
 				// p Onion DAO aims to add incentive layers to public goods in order to stimulate entities to support them.
 				div.row
-					a( target='_blank' href='https://github.com/Onion-DAO/litepaper' ).button Read Litepaper
-					a( href='#initiatives' ).button.invert Earn POAPs
+					a( href='#initiatives' ).button Join the DAO & earn rewards
+					a( target='_blank' href='https://github.com/Onion-DAO/litepaper' ).button.invert Read Litepaper
+					
+			
+			section#rewards
+				h2 Current OnionDAO rewards
+				p.center To claim OnionDAO rewards, join the #oniondao channel in <a href="cta">Discord</a> and type /oniondao. <br>The bot will DM you instructions.
+				section.usps 
+					.usp
+						img( src='/assets/lens-logo.svg' )
+						p Lens protocol
+						p whitelist
+
+					.usp
+						img( src='/assets/generous-vpn-logo.svg' )
+						p Generous VPN
+						p discount
+
+					.usp
+						img( src='/assets/liteserver-logo.png' )
+						p Liteserver
+						p upgrade
+					
+					.usp
+						img( src='/assets/poap-logo.svg' )
+						p POAP
+						p tokens
+					
+					//- .usp
+					//- 	img( src='/assets/logo.svg' )
+					//- 	p OnionDAO merch 
+					//- 	p discount
+
+				a( href='#initiatives' ).button Join the DAO & earn rewards
 
 			section#join.usps
 					h2 How to join the DAO
@@ -60,12 +91,14 @@ html( lang=content.lang )
 				h2 Current initiatives:
 				section.usps
 					div.usp
+						img( src='/assets/tor-logo.svg' )
 						h3 Run a Tor Exit Node (continuous)
 						p Run a Tor exit node. OnionDAO currently runs <b class='metric tor-contribution-percentage'>%</b> of all Tor exit nodes.
 						p Reward: monthly POAPs, distributed through poap.delivery.
 						a( href='https://github.com/Onion-DAO/tornode' ).button Read instructions
 
 					div.usp
+						img( src='/assets/google-sheets-logo.svg' )
 						h3 Find Tor Providers (one-time action)
 						p Help find out which VPS providers are the most Tor exit node friendly
 						p Reward: one-time POAP, distributed through poap.delivery.
