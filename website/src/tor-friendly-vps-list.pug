@@ -1,0 +1,256 @@
+//- --------------------------------
+//- HiPew settings
+//- --------------------------------
+
+//- This is pace-specific metadata
+-
+	const page = {
+		title: 'OnionDAO Tor friendly vps list', desc: 'Adding incentive layers to public goods', url: '/tor-friendly-vps-list',
+		published: '2022-04-03',
+		// featuredimg: '/assets/robert-katzki-jbtfM0XBeRc-unsplash.jpg'
+	}
+//- This is a file with helpers
+include pug/_helpers.pug
+
+
+//- --------------------------------
+//- Webpage source code
+//- --------------------------------
+
+doctype html
+html( lang=content.lang )
+	include pug/_head.pug
+	body#index
+		
+		include pug/_header.pug
+		
+		main
+			section#hero
+				h1 Onion DAO
+				p.subheading Tor Friendly VPS list
+
+			section#intro
+				h2 Tor Friendly VPS list
+				p Community sourced
+
+				br
+
+				p.scroll-text 
+					span Scrollable ➡️
+				div.table-container
+					table.vps-table
+						tr
+							th Name of the provider
+							th Website URL
+							th Price per month
+							th TB Bandwidth per month
+							th Crypto payments
+							th Country (jurisdiction)
+						tr
+							td Liteserver
+							td https://liteserver.nl/
+							td &euro;5
+							td 10
+							td Yes
+							td Netherlands
+						tr
+							td Liteserver
+							td https://liteserver.nl/
+							td &euro;110
+							td 400
+							td Yes
+							td Netherlands
+						tr
+							td netcup
+							td https://www.netcup.eu/
+							td &euro;3
+							td 80
+							td No
+							td Germany
+						tr
+							td DataWagon
+							td https://datawagon.com/
+							td $8.00
+							td 10
+							td Yes
+							td US
+						tr
+							td Flokinet
+							td flokinet.is
+							td &euro;7.50
+							td 1
+							td Yes
+							td Island
+						tr
+							td Privex
+							td https://www.privex.io/
+							td $50
+							td unmetered
+							td Yes
+							td Sweden
+						tr
+							td Pulse Servers
+							td https://www.pulseservers.com/
+							td $18
+							td Unmetered
+							td Unknown
+							td US
+						tr
+							td Flokinet
+							td https://flokinet.is/
+							td &euro;14
+							td 2GB
+							td No
+							td
+						tr
+							td ServerAstra
+							td https://serverastra.com/
+							td &euro;8.99
+							td 6
+							td Yes
+							td Hungary (I think)
+						tr
+							td Digital Ocean
+							td https://cloud.digitalocean.com
+							td &euro;10
+							td 1
+							td No
+							td USA
+						tr
+							td VPS.BG
+							td https://www.vpsbg.eu/
+							td &euro;108
+							td 6
+							td Yes
+							td Bulgaria
+						tr
+							td bitfolk
+							td bitfolk.com
+							td &euro;6.50
+							td 2
+							td Yes
+							td UK
+						tr
+							td Flokinet
+							td flokinet.is
+							td &euro;7.50
+							td 1
+							td Yes
+							td Island / roumania
+						tr
+							td Njalla
+							td https://njal.la/
+							td 15&euro;
+							td 1.5
+							td Yes
+							td Nevis
+						tr
+							td 1984Hosting
+							td https://1984.hosting/
+							td $11
+							td 2
+							td Yes
+							td Iceland
+						tr
+							td Rimu Hosting
+							td https://rimuhosting.com/index.jsp
+							td 53 AUD / 42 NZD
+							td 1
+							td Unknown
+							td Australia / New Zealand
+						tr
+							td Contabo
+							td https://contabo.com/
+							td $11.99
+							td 10
+							td No
+							td
+						tr
+							td NiceVPS
+							td https://nicevps.net/
+							td &euro;24.99
+							td 10
+							td Yes
+							td
+						tr
+							td Linode
+							td Linode.com
+							td $10
+							td 2 TB
+							td No
+							td United States ( Pennsylvania )
+						tr
+							td BuyVM / Frantech
+							td https://buyvm.net
+							td $7
+							td Unmetered
+							td No
+							td USA
+						tr
+							td Black.host
+							td https://black.host
+							td $11.99
+							td Unmetered 1Gbps
+							td Yes
+							td Geneva
+						tr
+							td OVH
+							td https://ovh.com
+							td &euro;6
+							td 250 Mbps
+							td No
+							td France
+						tr
+							td Serverica
+							td https://servarica.com/
+							td $7
+							td 100mbps unlimited
+							td Yes
+							td India
+						tr
+							td Oneprovider
+							td https://oneprovider.com/
+							td $17.99
+							td 30
+							td No
+							td United States (Los Angeles)
+						tr
+							td RackNation
+							td https://www.racknation.cr
+							td $14.00
+							td 1
+							td Unknown
+							td Costa Rica
+						tr
+							td Gandi VPS
+							td https://www.gandi.net/en-US
+							td $19.00
+							td Unmetered
+							td Yes
+							td France
+						tr
+							td Dataclub
+							td https://www.dataclub.eu/
+							td &euro;20.99
+							td Unlimited
+							td Yes
+							td
+						tr
+							td HostWorld UK
+							td https://hostworld.uk/
+							td &pound;3.60
+							td Unlimited Bandwith
+							td Yes
+							td United Kingdom
+				p.scroll-text 
+					span Scrollable ➡️
+
+			section#cta
+				h2 Join us
+				section.usps
+					div.usp
+						a( href="https://discord.com/invite/rocketeers" )
+							img( src="/assets/discord-logo-black.svg" )
+						p Join us in the Rocketeer discord in channel <a href="https://discord.com/invite/rocketeers">「🧅」onion-dao</a>
+
+		include pug/_footer.pug

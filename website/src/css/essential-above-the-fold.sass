@@ -223,7 +223,40 @@ a.button, button.button
 			min-width: 400px
 			margin-bottom: 1.5rem
 
-			.client-metric
+		.scroll-text
+			font-size: 13px
+			height: 20px
+			margin: 0
+			align-self: flex-end
+			span
+				display: none
+				@media screen and (max-width: 1024px)
+					display: block
+
+		.table-container
+			width: 100% !important
+			overflow-x: scroll
+
+		.vps-table
+			margin: 0 auto
+			border-collapse: collapse
+
+			tr:nth-child(even)
+				background-color: #dddddd
+
+			tr:nth-child(odd)
+				background-color: #eee
+
+			th
+				background-color: black
+				color: #fff
+
+			th, td
+				text-align: left
+				font-size: .8rem
+				min-width: 150px
+				padding: 5px
+				border: 1px solid #dddddd
 
 	.usps
 		flex-direction: row
