@@ -49,7 +49,7 @@ const get = async link => {
 // Match all hrefs that have a // (external)
 export const urls = str => Array.from( str.matchAll( /(?:href=(?:'|"))(.*?\/\/.*?)(?:"|')/g ), m => m[1] )
 
-// CHeck if url is broken
+// Check if url is broken
 export const isBroken = link => get( link )
 .then( ( { statusCode } ) => statusCode == 200 ? false : { ...link, code: statusCode } )
 .catch( ( { statusCode, name, message, ...other } ) => ( { ...link, code: statusCode || name || message || other } ) )
