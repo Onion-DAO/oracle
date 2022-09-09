@@ -34,6 +34,11 @@ jobs:
         with:
           node-version: "${{ steps.nvmfunctions.outputs.NVMRC }}"
 
+      - name: Create environment files
+        run: |
+          echo -e "${{ secrets.FUNCTIONS_DOTENV }}" > .env
+        working-directory: functions
+
       - name: Install functions dependencies
         run: npm i
         working-directory: functions

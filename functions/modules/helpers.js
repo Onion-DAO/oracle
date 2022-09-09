@@ -27,9 +27,20 @@ const allow_only_these_properties = ( obj, allowed_properties ) => {
 
 }
 
+// Date helpers
+const today = new Date()
+const month_index = today.getMonth()
+const year_number = today.getFullYear()
+const month_number = month_index <= 9 ? `0${ month_index }` : month_index
+const day_number = today.getDate() <= 9 ? `0${ today.getDate() }` : today.getDate()
+
+
 module.exports = {
 	dev,
 	log,
 	require_properties,
-	allow_only_these_properties
+	allow_only_these_properties,
+	year_number,
+	month_number,
+	day_number
 }

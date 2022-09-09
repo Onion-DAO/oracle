@@ -105,10 +105,10 @@ route.get( '/:node_ip', async ( req, res ) => {
 		if( !node_entry.exists ) throw new Error( `This ipv4 is not registered as an OnionDAO node. Should it be? Ask @actuallymentor for help on Twitter.` )
 
 		const node_entry_data = dataFromSnap( node_entry )
-		const { created_human, wallet } = node_entry_data
+		const { created_human, wallet, last_score } = node_entry_data
 
 		log( `Data for ${ node_ip }: `, JSON.stringify( node_entry_data ) )
-		return res.send( `✅ This node belongs to ${ wallet } and was registered with the Oracle on ${ created_human }.` )
+		return res.send( `✅ This node belongs to ${ wallet } and was registered with the Oracle on ${ created_human }. The last known score is: ${ last_score }` )
 
 
 	} catch( e ) {
