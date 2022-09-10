@@ -16,6 +16,8 @@ const { pushover } = functions.config()
 // /////////////////////////////*/
 route.get( '/', ( req, res ) => res.send( 'This is the OnionDAO.eth API' ) )
 
+/* ///////////////////////////////
+// Exposing data */
 route.get( '/list/:property/:format?', async ( req, res ) => {
 
 	try {
@@ -24,7 +26,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 		const { property, format } = req.params
 
 		// WHen running publicly, expose only ip addresses
-		const public_properties = [ 'ip', 'wallet' ]
+		const public_properties = [ 'ip', 'wallet', 'last_score' ]
 		if( !process.env.development && !public_properties.includes( property ) ) return res.send( `This is a private endpoint sorry` )
 
 		// Get all node data
@@ -37,13 +39,22 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 		if( property == 'amount' ) return res.send( `Tor node amount: ${nodes.length}` )
 
 		// If a specific property was requested, filter it
-		let filtered_data = nodes.map( node => node[ property ] )
-			.filter( data => !!data )
-			.map( entry => entry.toLowerCase() )
-			.reduce( ( acc, val ) => {
-				if( !acc.includes( val ) ) return [ ...acc, val ]
-				return acc
-			}, [] )
+		let filtered_data = []
+
+		// Simple properties
+		if( property != 'last_score' ) filtered_data = nodes.map( node => node[ property ] )
+		.filter( data => !!data )
+		.map( entry => entry.toLowerCase() )
+		.reduce( ( acc, val ) => {
+			if( !acc.includes( val ) ) return [ ...acc, val ]
+			return acc
+		}, [] )
+		
+		// If this is a score request, make a score list
+		if( property == 'last_score' ) {
+			if( format == 'csv' ) filtered_data = nodes.map( ( { ip, last_score } ) => `${ip}, ${ last_score }` )
+			else filtered_data = filtered_data = nodes.map( ( { ip, last_score } ) => ( { ip, last_score } ) )
+		}
 
 
 		// Manipulations
