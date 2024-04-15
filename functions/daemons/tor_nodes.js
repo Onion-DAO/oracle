@@ -1,8 +1,7 @@
 const { db, arrayUnion, dataFromSnap, increment } = require( '../modules/firebase' )
-const { get_node_meta } = require( '../modules/score_nodes' )
-const { error, log, day_number, year_number, month_number } = require( '../modules/helpers' )
+const { get_relay_status } = require( '../modules/relay_meta' )
+const { error, log, day_number, year_number, month_number, dev } = require( '../modules/helpers' )
 const fetch = require( 'isomorphic-fetch' )
-const { HIGH_UPTIME_SCORE } = process.env
 
 exports.increment_node_count_on_write = async function( change, context ) {
 
@@ -28,14 +27,19 @@ exports.increment_node_count_on_write = async function( change, context ) {
 
 }
 
-exports.register_total_tor_exit_nodes = async function( ) {
+const register_total_tor_exit_nodes = async function( nodes ) {
 
 	try {
 
 		// Get all node data
-		const nodes = await db.collection( 'tor_nodes' ).get().then( dataFromSnap )
-		log( `Calculating high uptime nodes based on ${ HIGH_UPTIME_SCORE } score` )
-		const high_uptime_nodes = nodes.filter( ( { last_score } ) => last_score >= HIGH_UPTIME_SCORE )
+		nodes = nodes || await db.collection( 'tor_nodes' ).get().then( dataFromSnap )
+		
+		// Calculate node activity data
+		const active_nodes = nodes.filter( ( { running } ) => running ).length
+		const dormant_nodes = nodes.length - active_nodes
+
+		log( `Calculating high uptime nodes based on 90 score in the last 30 days` )
+		const high_uptime_nodes = nodes.filter( ( { score_average_30d } ) => score_average_30d >= 90 )
 		log( `${ nodes.length } OnionDAO nodes` )
 
 		// Get a list of all tor exit nodes
@@ -45,15 +49,17 @@ exports.register_total_tor_exit_nodes = async function( ) {
 
 		// Hard coded failover in case the Tor exit page is down
 		// get manual data: https://metrics.torproject.org/rs.html#aggregate/all
-		if( !exit_node_count || exit_node_count < 10 ) exit_node_count = 1582
+		if( !exit_node_count || exit_node_count < 10 ) exit_node_count = 2484
 
 		// Contribution metric
-		const contribution_fraction = nodes.length / exit_node_count
+		const contribution_fraction = active_nodes / exit_node_count
 		const contribution_percent_two_decimals = Math.floor( contribution_fraction * 10000 ) / 100
 		log( `Contribution fraction ${ contribution_fraction }, percentage: ${ contribution_percent_two_decimals }` )
 
 		const updated_metrics = {
 			count: nodes.length,
+			active_nodes,
+			dormant_nodes,
 			high_uptime_nodes: high_uptime_nodes.length,
 			global_exit_nodes: exit_node_count,
 			percent_contribution: contribution_percent_two_decimals,
@@ -70,7 +76,8 @@ exports.register_total_tor_exit_nodes = async function( ) {
 		error( 'register_total_tor_exit_nodes error: ', e )
 	}
 
-}
+} 
+exports.register_total_tor_exit_nodes = register_total_tor_exit_nodes
 
 exports.seed_node_metrics = async function( ) {
 
@@ -96,6 +103,8 @@ exports.generate_node_scores = async function () {
 
 	try {
 
+		const verbose = false
+
 
 		/* ///////////////////////////////
 		// Get node scores */
@@ -106,51 +115,60 @@ exports.generate_node_scores = async function () {
 		log( `Retreived ${ nodes.length } node entries` )
 
 		log( `Getting scores for all nodes` )
-		const scores = await Promise.all( nodes.map( ( { uid } ) => get_node_meta( uid ) ) )
-		log( `Got scores for ${ scores.length } nodes` )
-
-		/* ///////////////////////////////
-		// Save node scores */
-
-		// Save raw scores
-		log( `Writing raw scores to tor_node_score` )
-		await Promise.all( scores.map( score => {
-
-			const { ip, score_without_uid } = score
-			return db.collection( 'tor_node_score' ).add( {
-				...score_without_uid,
-				ip,
-				updated: Date.now(),
-				updated_human: new Date().toString()
-			} )
-
-		} ) )
+		const statuses = await Promise.all( nodes.map( ( { uid } ) => get_relay_status( uid ) ) )
+		log( `Got scores for ${ statuses.length } nodes` )
 
 		// Save day score only in pretty format
 		log( `Writing short format scores to tor_nodes` )
-		await Promise.all( scores.map( async score => {
+		await Promise.all( statuses.map( async status => {
 
-			const { ip, node_score } = score
-			log( `Ip score: `, node_score )
+			const { ip, node_score, running } = status
+			if( verbose ) log( `Ip score: `, status )
 
-			// Calculate score
-			const { last_score, ...old_node_data } = await db.collection( 'tor_nodes' ).doc( ip ).get().then( dataFromSnap )
-			const score_base = old_node_data[ `${ year_number }_${ month_number }_counter` ] || 0
-			const new_counter_score = score_base + node_score
-			const normalised_score = Math.ceil( new_counter_score / day_number )
-			log( `Score base: ${ score_base }. New counter: ${ new_counter_score }. New normalised: ${ normalised_score }` )
-			log( `ip ${ ip }: from ${ last_score } to ${ normalised_score }` )
+			// Get the current node metadata
+			const node = await db.collection( 'tor_nodes' ).doc( ip ).get().then( dataFromSnap )
+			const { score_history: old_score_history=[] } = node
 
-			return db.collection( 'tor_nodes' ).doc( ip ).set( {
-				[ `${ year_number }_${ month_number }_counter` ]: increment( node_score ),
-				last_score: normalised_score,
+			// // If the score history is shorter than 30, import last month's yyyy_mm_dd score, this is intended as a single time import of old data
+			// // this calculation is very approximate, but it's better than nothing
+			// if( old_score_history.length < 30 ) {
+			// 	const last_month_score = node[ `${ year_number() }_${ month_number( -1 ) }_counter` ]
+			// 	if( verbose ) log( `Last month ${ year_number() }_${ month_number( -1 ) }_counter score: `, last_month_score )
+			// 	old_score_history = [ ...old_score_history, ...Array( 30 ).fill( Math.floor( last_month_score / 30 ) ) ]
+			// }
+
+			// Update score history and moving averages
+			const score_history = [ ...old_score_history.slice( 0, 364 ), node_score ]
+			if( verbose ) log( `Score history: `, score_history )
+			const scores = {
+				score_average_7d: score_history.slice( 0, 7 ).reduce( ( acc, val ) => acc + val, 0 ) / 7,
+				score_average_30d: score_history.slice( 0, 30 ).reduce( ( acc, val ) => acc + val, 0 ) / 30,
+			}
+
+			// Generate node metadata 
+			const updated_metadata = {
+				// Incrementing score of this month
+				[ `${ year_number() }_${ month_number() }_counter` ]: increment( node_score ),
+				// Updated score history
+				score_history,
+				...scores,
+				// Save the raw status data
+				status,
+				running,
 				updated: Date.now(),
-				updated_human: new Date().toString()
-			}, { merge: true } )
+				updated_human: new Date().toString() 
+			}
+			if( verbose )  log( `Updated metadata: `, updated_metadata )
+
+			return db.collection( 'tor_nodes' ).doc( ip ).set( updated_metadata, { merge: true } )
 
 		} ) )
 
 		log( `Node scoring complete` )
+
+		// Update total node count 
+		await register_total_tor_exit_nodes( nodes )
+		log( `Total node count updated` )
 
 
 	} catch( e ) {

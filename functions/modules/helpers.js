@@ -28,11 +28,11 @@ const allow_only_these_properties = ( obj, allowed_properties ) => {
 }
 
 // Date helpers
-const today = new Date()
-const month_index = today.getMonth()
-const year_number = today.getFullYear()
-const month_number = month_index <= 9 ? `0${ month_index }` : month_index
-const day_number = today.getDate() <= 9 ? `0${ today.getDate() }` : today.getDate()
+const today = () => new Date()
+const month_index = ( shift=0 ) => today().getMonth() + shift
+const year_number = () => today().getFullYear()
+const month_number = shift => month_index( shift ) <= 9 ? `0${ month_index( shift ) }` : month_index( shift )
+const day_number = ( prefix=true ) => ( prefix && today().getDate() <= 9 ) ? `0${ today().getDate() }` : today().getDate()
 
 
 module.exports = {
