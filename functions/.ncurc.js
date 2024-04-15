@@ -1,5 +1,5 @@
 module.exports = {
-  upgrade: true,
-  target: 'minor',
-  reject: [ ]
+  upgrade: false,
+  // target: 'minor',
+  reject: []
 }

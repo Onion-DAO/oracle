@@ -1,8 +1,8 @@
-const functions = require("firebase-functions");
+const functions = require( "firebase-functions" )
 
 const generous_runtime = {
-	timeoutSeconds: 540,
-	memory: '1GB'
+    timeoutSeconds: 540,
+    memory: '1GB'
 }
 
 /* ///////////////////////////////
@@ -11,10 +11,10 @@ const generous_runtime = {
 
 exports.public_api = functions.https.onRequest( ( ...args ) => {
 
-	const app = require( './modules/express' )
-	const node_route = require( './endpoints/tor_nodes' )
-	app.use( '/api/tor_nodes', node_route )
-	return app( ...args )
+    const app = require( './modules/express' )
+    const node_route = require( './endpoints/tor_nodes' )
+    app.use( '/api/tor_nodes', node_route )
+    return app( ...args )
 	
 } )
 

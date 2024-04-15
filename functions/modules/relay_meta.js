@@ -1,6 +1,6 @@
-const fetch = require("isomorphic-fetch")
-const { log } = require("./helpers")
-const { check_port_availability } = require("./network")
+const fetch = require( "isomorphic-fetch" )
+const { log } = require( "./helpers" )
+const { check_port_availability } = require( "./network" )
 
 
 /**
@@ -53,7 +53,7 @@ exports.get_relay_status = async function( ip, verbose=false ) {
     
     // One ip may run many relays, check if at least one is up
     const relay_data = tor_metrics?.relays?.find( find_running_relay )
-    if( verbose) log( `Relay data: `, relay_data )
+    if( verbose ) log( `Relay data: `, relay_data )
 
     // Calculate node score
     let node_score = 0
