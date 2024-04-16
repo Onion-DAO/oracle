@@ -1,6 +1,6 @@
-const { db, arrayUnion, dataFromSnap, increment } = require( '../modules/firebase' )
+const { db, dataFromSnap, increment } = require( '../modules/firebase' )
 const { get_relay_status } = require( '../modules/relay_meta' )
-const { error, log, day_number, year_number, month_number, dev } = require( '../modules/helpers' )
+const { error, log, year_number, month_number } = require( '../modules/helpers' )
 const fetch = require( 'isomorphic-fetch' )
 
 exports.increment_node_count_on_write = async function( change, context ) {
