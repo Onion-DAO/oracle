@@ -33,6 +33,10 @@ const year_number = () => today().getFullYear()
 const month_number = shift => month_index( shift ) <= 9 ? `0${ month_index( shift ) }` : month_index( shift )
 const day_number = ( prefix=true ) =>  prefix && today().getDate() <= 9  ? `0${ today().getDate() }` : today().getDate()
 
+// Numbers helpers
+const round_to_decimals = ( number, decimals=2 ) => Math.round( number * 10 ** decimals ) / 10 ** decimals
+
+const normalise = string => `${ string }`.toLowerCase().trim()
 
 module.exports = {
     dev,
@@ -41,5 +45,7 @@ module.exports = {
     allow_only_these_properties,
     year_number,
     month_number,
-    day_number
+    day_number,
+    round_to_decimals,
+    normalise
 }

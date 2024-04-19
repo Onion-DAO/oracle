@@ -3,4 +3,7 @@ exports.email_regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_
 exports.tor_nickname_regex = /^\w{1,19}$/ // https://tpo.pages.torproject.net/core/doc/tor/nickname_8h.html
 exports.bandwidth_regex = /^\d{1,64}|unknown$/ // Number in TB
 exports.reduced_exit_policy_regex = /^[yn]{1}|unknown$/i
-exports.wallet_or_ens_regex = /^0x[a-z-0-9]{40}|\w{1,255}\.eth$/i // https://eips.ethereum.org/EIPS/eip-137#:~:text=Labels%20and%20domains%20may%20be,no%20more%20than%20255%20characters.
+exports.wallet_or_ens_regex = /^0x[a-f-0-9]{40}|\w{1,255}\.eth$/i // https://eips.ethereum.org/EIPS/eip-137#:~:text=Labels%20and%20domains%20may%20be,no%20more%20than%20255%20characters.
+
+exports.eth_address_regex = /(0x[a-f0-9]{40})/i
+exports.ens_address_regex = /(.*\.[a-z]{2,63})/i

@@ -34,9 +34,10 @@ const { generate_node_scores } = require( './daemons/tor_nodes' )
 exports.generate_node_scores = functions.runWith( generous_runtime ).pubsub.schedule( '0 9 * * *' ).onRun( generate_node_scores )
 
 /* ///////////////////////////////
-// Reward calculations
+// Reward distribution
 // /////////////////////////////*/
-
+const { update_split } = require( './daemons/0xsplit' )
+exports.update_split = functions.runWith( generous_runtime ).pubsub.schedule( '0 10 * * *' ).onRun( update_split )
 
 // Manual calling
 // const { seed_node_metrics, register_total_tor_exit_nodes } = require( './daemons/tor_nodes' )

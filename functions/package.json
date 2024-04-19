@@ -16,7 +16,8 @@
   },
   "main": "index.js",
   "dependencies": {
-    "@0xsplits/splits-sdk": "^4.0.3-alpha.6",
+    "@0xsplits/splits-sdk": "^3.3.1",
+    "bignumber.js": "^9.1.2",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",

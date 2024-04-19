@@ -188,31 +188,12 @@ route.post( '/', async ( req, res ) => {
         await db.collection( 'tor_nodes' ).doc( ip ).set( { ...registration_entry }, { merge: true } )
 
         // Ping Mentor
-        try {
-
-            const { PUSHOVER_TOKEN, PUSHOVER_USER } = process.env
-            if( !PUSHOVER_TOKEN || !PUSHOVER_USER ) throw new Error( `Missing Pushover credentials` )
-
-            await fetch( `https://api.pushover.net/1/messages.json`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify( {
-                    token: PUSHOVER_TOKEN,
-                    user: PUSHOVER_USER,
-                    title: `OnionDAO: New Tor Node ${ node_nickname }`,
-                    message: `by ${ email } aka ${ twitter }/${ wallet } with ${ bandwidth }TB/${ reduced_exit_policy ? 'REP' : 'LIM' }`,
-                    url: `http://${ ip }`,
-                    priority: '0',
-                } )
-            } )
-
-        } catch ( e ) {
-
-            log( `Pushover failure: `, e.message )
-
-        }
+        const { ping_mentor } = require( '../modules/pushover' )
+        await ping_mentor( {
+            title: `OnionDAO: New Tor Node ${ node_nickname }`,
+            message: `by ${ email } aka ${ twitter }/${ wallet } with ${ bandwidth }TB/${ reduced_exit_policy ? 'REP' : 'LIM' }`,
+            url: `http://${ ip }`
+        } )
 
         // Return plaintext success message
         return res.send( `✅ OnionDAO Oracle successfully registered your node` )

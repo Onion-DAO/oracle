@@ -100,6 +100,10 @@ exports.seed_node_metrics = async function( ) {
 
 }
 
+/**
+ * Generates node scores for all nodes in the database.
+ * @returns {Promise<void>} - A promise that resolves when the scores have been generated.
+ */
 exports.generate_node_scores = async function () {
 
     try {
@@ -123,12 +127,12 @@ exports.generate_node_scores = async function () {
         log( `Writing short format scores to tor_nodes` )
         await Promise.all( statuses.map( async status => {
 
-            const { ip, node_score, running } = status
+            const { ip, node_score, running, cumulative_bandwidth_mib } = status
             if( verbose ) log( `Ip score: `, status )
 
             // Get the current node metadata
             const node = await db.collection( 'tor_nodes' ).doc( ip ).get().then( dataFromSnap )
-            const { score_history: old_score_history=[] } = node
+            const { score_history: old_score_history=[], bandwidth_history: old_bandwidth_history=[] } = node
 
             // // If the score history is shorter than 30, import last month's yyyy_mm_dd score, this is intended as a single time import of old data
             // // this calculation is very approximate, but it's better than nothing
@@ -140,10 +144,13 @@ exports.generate_node_scores = async function () {
 
             // Update score history and moving averages
             const score_history = [ ...old_score_history.slice( 0, 364 ), node_score ]
+            const bandwidth_history = [ ...old_bandwidth_history.slice( 0, 364 ), cumulative_bandwidth_mib ]
             if( verbose ) log( `Score history: `, score_history )
             const scores = {
                 score_average_7d: score_history.slice( 0, 7 ).reduce( ( acc, val ) => acc + val, 0 ) / 7,
                 score_average_30d: score_history.slice( 0, 30 ).reduce( ( acc, val ) => acc + val, 0 ) / 30,
+                bandwidth_average_7d: bandwidth_history.slice( 0, 7 ).reduce( ( acc, val ) => acc + val, 0 ) / 7,
+                bandwidth_average_30d: bandwidth_history.slice( 0, 30 ).reduce( ( acc, val ) => acc + val, 0 ) / 30,
             }
 
             // Generate node metadata 
@@ -154,7 +161,7 @@ exports.generate_node_scores = async function () {
                 score_history,
                 ...scores,
                 // Save the raw status data
-                status,
+                ...status,
                 running,
                 updated: Date.now(),
                 updated_human: new Date().toString() 

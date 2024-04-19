@@ -31,6 +31,7 @@ const find_running_relay = relay => {
 
 /**
  * Fetches the availability of ports and Tor metrics for a given IP address.
+ * Tor Onionoo docs: https://metrics.torproject.org/onionoo.html
  * @param {string} ip - The IP address to check.
  * @param {boolean} verbose - Indicates if verbose logging should be enabled.
  * @returns {Promise<Object>} score - A promise that resolves to an object
@@ -69,7 +70,8 @@ exports.get_relay_status = async function( ip, verbose=false ) {
 
     log( `Node ${ ip } score using ${ tor_metrics.error ? 'port' : 'Onionoo' } data: `, node_score )
 
-    // Calculate the cumulative bandwidth
+    // Calculate the cumulative bandwidth of all relays on an ip
+    // observed_bandwidth: Bandwidth estimate in bytes per second of the capacity this relay can handle. The relay remembers the maximum bandwidth sustained output over any ten second period in the past day, and another sustained input. The "observed_bandwidth" value is the lesser of these two numbers. Missing if router descriptor containing this information cannot be found.
     const cumulative_bandwidth_mib = Math.floor( ( tor_metrics?.relays?.reduce( ( acc, { observed_bandwidth } ) => acc + observed_bandwidth, 0 ) || 0 ) / 1024 / 1024 )
 
     // Grab useful relay metrics
