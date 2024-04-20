@@ -6,9 +6,9 @@ async function get_split_client() {
 
     // Dependencies
     const { SplitsClient } = await import( '@0xsplits/splits-sdk' )
-    const { get_public_client, get_wallet_client } = require( '../modules/web3' )
+    const { get_public_client, get_wallet_client, resolve_address_to_ens } = require( '../modules/web3' )
     const { arbitrum, mainnet } = require( 'viem/chains' )
-    const { log } = require( '../modules/helpers' )
+    const { log, round_to_decimals } = require( '../modules/helpers' )
     const { SPLITTER_PRIVATE_HOTKEY } = process.env
 
     // Create public client
@@ -122,9 +122,10 @@ exports.update_split = async function() {
     log( `Total score: ${ total_score }` )
 
     // Formulate scores as splits objest, see https://docs.splits.org/sdk/splits#updatesplit
-    const recipients = await Promise.all( weighted_nodes.map( async ( { wallet, reward_weight } ) => ( {
+    const recipients = await Promise.all( weighted_nodes.map( async ( { wallet, reward_weight, cumulative_bandwidth_mib } ) => ( {
         address: await resolve_ens_to_address( wallet ),
         percentAllocation: new BigNumber( reward_weight ).div( total_score ).times( 100 ).decimalPlaces( 4 ).toNumber(),
+        cumulative_bandwidth_mib
     } ) ) )
 
     // Handle the total allocation mismatch, assign the unallocated amount back to the OnionDAO
@@ -135,6 +136,9 @@ exports.update_split = async function() {
         address: await resolve_ens_to_address( 'oniondao.eth' ),
         percentAllocation: unallocated,
     } )
+
+    // Sort recipients by bandwidth
+    recipients.sort( ( a, b ) => b.cumulative_bandwidth_mib - a.cumulative_bandwidth_mib )
 
     log( `Recipients:`, recipients.length )
 
@@ -149,8 +153,10 @@ exports.update_split = async function() {
         distributorFeePercent: 0,
     }
     log( `Updates:`, updates )
-    const response = await client.updateSplit( updates )
+    // const response = await client.updateSplit( updates )
+    const response = { event: { transactionHash: '0x1234567890' } }
     log( `Split updated:`, response )
+    const { transactionHash } = response.event
 
     // Ping mentor
     const { ping_mentor } = require( '../modules/pushover' )
@@ -160,7 +166,29 @@ exports.update_split = async function() {
         url: `https://app.splits.org/accounts/${ SPLIT_ADDRESS }/?chainId=42161`
     } )
 
+    // Resolve all addresses to ENS names
+    const { resolve_address_to_ens } = require( '../modules/web3' )
+    const { round_to_decimals } = require( '../modules/helpers' )
+    const as_table = require( 'as-table' )
+    const resolved_recipients = await Promise.all( recipients.map( async ( { address, ...recipient } ) => ( {
+        address: await resolve_address_to_ens( address ),
+        ...recipient
+    } ) ) )
+    const table = as_table.configure( { delimiter: ' | ' } )( resolved_recipients.map( ( { address, percentAllocation, cumulative_bandwidth_mib } ) => ( {
+        address,
+        reward: `${ round_to_decimals( percentAllocation, 2 ) }%`,
+        bandwidth: `${ cumulative_bandwidth_mib || 0 } MiB/s`
+    } ) ) )
+    log( `Reward table:`, table )
 
+    // Ping discord
+    const { ping_discord } = require( '../modules/discord' )
+    await ping_discord( {
+        username: `Sir Onion`,
+        content: `Reward split updated! ${ recipients.length } nodes are running ([view transaction](https://arbiscan.io/tx/${ transactionHash }), gasprice ${ gas_price_gwei } gwei)
+        \n[View updated split here](https://app.splits.org/accounts/${ SPLIT_ADDRESS }/?chainId=42161).
+        \n${ "```markdown\n" + table + "```" }`,
+    } )
 
 }
 

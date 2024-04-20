@@ -124,6 +124,40 @@ async function resolve_ens_to_address( ens_name, chain ) {
 
 }
 
+async function resolve_address_to_ens( address, chain ) {
+
+    // If this is not an eth address, return the input as is
+    const { eth_address_regex } = require( './regex' )
+    if( !eth_address_regex.test( address ) ) return address
+
+    // If the ENS name is already in the cache, return it
+    if( ens_cache[ address ] ) return ens_cache[ address ]
+
+    // If no chain was specified, assume mainnet
+    if( !chain ) {
+        const { mainnet } = require( 'viem/chains' )
+        chain = mainnet
+    }
+
+    // const { log } = require( './helpers' )
+    // log( `Resolving ENS name: `, ens_name, ` on chain: `, chain.id )
+
+    // Get public client
+    const publicClient = await get_public_client( chain )
+
+    // Resolve ENS name
+    const ens = await publicClient.getEnsName( {
+        address,
+    } )
+
+    // Cache address
+    ens_cache[ address ] = ens
+
+    // Return address
+    return ens || address
+
+}
+
 async function is_gas_price_safe( { chain, max_gas_price_wei, max_gas_price_gwei } ) {
 
     const publicClient = await get_public_client( chain )
@@ -148,5 +182,6 @@ module.exports = {
     get_public_client,
     get_wallet_client,
     resolve_ens_to_address,
-    is_gas_price_safe
+    is_gas_price_safe,
+    resolve_address_to_ens
 }
