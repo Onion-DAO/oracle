@@ -153,8 +153,8 @@ exports.update_split = async function() {
         distributorFeePercent: 0,
     }
     log( `Updates:`, updates )
-    // const response = await client.updateSplit( updates )
-    const response = { event: { transactionHash: '0x1234567890' } }
+    const response = await client.updateSplit( updates )
+    // const response = { event: { transactionHash: '0x1234567890' } }
     log( `Split updated:`, response )
     const { transactionHash } = response.event
 
