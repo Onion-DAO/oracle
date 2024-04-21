@@ -179,7 +179,7 @@ exports.update_split = async function() {
         reward: `${ round_to_decimals( percentAllocation, 2 ) }%`,
         bandwidth: `${ cumulative_bandwidth_mib || 0 } MiB/s`
     } ) ) )
-    log( `Reward table:`, table )
+    log( `Reward table:\n`, table )
 
     // Ping discord
     const { ping_discord } = require( '../modules/discord' )
