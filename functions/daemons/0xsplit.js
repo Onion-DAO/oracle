@@ -137,9 +137,6 @@ exports.update_split = async function() {
         percentAllocation: unallocated,
     } )
 
-    // Sort recipients by bandwidth
-    recipients.sort( ( a, b ) => b.cumulative_bandwidth_mib - a.cumulative_bandwidth_mib )
-
     log( `Recipients:`, recipients.length )
 
     // Get the aplit client
@@ -174,6 +171,7 @@ exports.update_split = async function() {
         address: await resolve_address_to_ens( address ),
         ...recipient
     } ) ) )
+    resolved_recipients.sort( ( a, b ) => b.cumulative_bandwidth_mib - a.cumulative_bandwidth_mib )
     const table = as_table.configure( { delimiter: ' | ' } )( resolved_recipients.map( ( { address, percentAllocation, cumulative_bandwidth_mib } ) => ( {
         address,
         reward: `${ round_to_decimals( percentAllocation, 2 ) }%`,
