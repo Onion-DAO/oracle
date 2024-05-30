@@ -18,7 +18,7 @@ exports.ping_discord = async function( { username, content, avatar_url } ) {
             embeds: [
                 // { title: 'Image title', thumbnail: { url: url to thing } }
             ],
-            flags: 1 << 2 // https://discord.com/developers/docs/resources/channel#message-object-message-flags
+            flags: 1 << 2 // hide embed links https://discord.com/developers/docs/resources/channel#message-object-message-flags
         }
 
         // Construct request options

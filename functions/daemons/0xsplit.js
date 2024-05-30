@@ -74,8 +74,7 @@ exports.update_split = async function() {
 
     // Check if there is chain congestion
     const { is_gas_price_safe } = require( '../modules/web3' )
-    const { max_gas_price_gwei } = await db.collection( 'settings' ).doc( 'arbitrum' ).get().then( dataFromSnap )
-    const { safe, gas_price_gwei } = await is_gas_price_safe( { max_gas_price_gwei } )
+    const { safe, gas_price_gwei } = await is_gas_price_safe()
     log( `Gas price: ${ gas_price_gwei } gwei, safe: ${ safe }` )
     if( !safe ) return log( `Gas price is too high at ${ gas_price_gwei } gwei not updating split` )
 
@@ -167,15 +166,16 @@ exports.update_split = async function() {
     const { resolve_address_to_ens } = require( '../modules/web3' )
     const { round_to_decimals } = require( '../modules/helpers' )
     const as_table = require( 'as-table' )
-    const resolved_recipients = await Promise.all( recipients.map( async ( { address, ...recipient } ) => ( {
+    const resolved_recipients = await Promise.all( recipients.map( async ( { address, cumulative_bandwidth_mib, ...recipient } ) => ( {
         address: await resolve_address_to_ens( address ),
+        cumulative_bandwidth_mib: cumulative_bandwidth_mib || 0,
         ...recipient
     } ) ) )
     resolved_recipients.sort( ( a, b ) => b.cumulative_bandwidth_mib - a.cumulative_bandwidth_mib )
     const table = as_table.configure( { delimiter: ' | ' } )( resolved_recipients.map( ( { address, percentAllocation, cumulative_bandwidth_mib } ) => ( {
         address,
         reward: `${ round_to_decimals( percentAllocation, 2 ) }%`,
-        bandwidth: `${ cumulative_bandwidth_mib || 0 } MiB/s`
+        bandwidth: `${ cumulative_bandwidth_mib } MiB/s`
     } ) ) )
     log( `Reward table:\n`, table )
 

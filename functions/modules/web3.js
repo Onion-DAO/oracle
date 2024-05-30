@@ -158,10 +158,14 @@ async function resolve_address_to_ens( address, chain ) {
 
 }
 
-async function is_gas_price_safe( { chain, max_gas_price_wei, max_gas_price_gwei } ) {
+async function is_gas_price_safe( { chain }={} ) {
+
+    // Dependencies
+    const { dataFromSnap, db } = require( './firebase' )
 
     const publicClient = await get_public_client( chain )
     const gas_price = await publicClient.getGasPrice()
+    let { max_gas_price_gwei, max_gas_price_wei } = await db.collection( 'settings' ).doc( 'arbitrum' ).get().then( dataFromSnap )
 
     // If a gas price in gwei was specified, convert it to a viem compatible wei bignumber
     // https://viem.sh/docs/utilities/#parseGwei
