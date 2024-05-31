@@ -59,7 +59,7 @@ exports.trigger_endoweth_distribution = async function () {
         } )
 
     } catch ( error ) {
-        log( `Error simulating contract write:`, error )
+        console.error( `Error triggering endowment distribution:`, error )
     }
 
 
