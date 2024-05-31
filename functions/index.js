@@ -37,9 +37,9 @@ exports.generate_node_scores = functions.runWith( generous_runtime ).pubsub.sche
 // Reward distribution
 // /////////////////////////////*/
 const { update_split } = require( './daemons/0xsplit' )
-exports.update_split = functions.runWith( generous_runtime ).pubsub.schedule( '0 10 * * *' ).onRun( update_split )
+exports.update_split = functions.runWith( generous_runtime ).pubsub.schedule( '0 15 * * *' ).onRun( update_split )
 const { trigger_endoweth_distribution } = require( './daemons/endoweth' )
-exports.trigger_endoweth_distribution = functions.pubsub.schedule( '0 15 * * *' ).onRun( trigger_endoweth_distribution )
+exports.trigger_endoweth_distribution = functions.pubsub.schedule( '0 20 * * *' ).onRun( trigger_endoweth_distribution )
 
 // Manual calling
 // const { seed_node_metrics, register_total_tor_exit_nodes } = require( './daemons/tor_nodes' )

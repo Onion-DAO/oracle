@@ -42,6 +42,14 @@ exports.trigger_endoweth_distribution = async function () {
         const hash = await wallet_client.writeContract( request )
         log( `Signed transaction: https://arbiscan.io/tx/${ hash }` )
 
+        // Ping mentor
+        const { ping_mentor } = require( '../modules/pushover' )
+        await ping_mentor( {
+            title: `OnionDAO Payout`,
+            message: `Payout triggered, gas price ${ gas_price_gwei } gwei, safe: ${ safe }`,
+            url: `https://arbiscan.io/tx/${ hash }`
+        } )
+
         // Notify discord
         const { ping_discord } = require( '../modules/discord' )
         await ping_discord( {
