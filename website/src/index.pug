@@ -27,48 +27,54 @@ html( lang=content.lang )
 		main
 			section#hero
 				h1 Onion DAO
-				h2 Incentivising the running of Tor exit nodes
-				a( href='#rewards' ).button.white Join the DAO, earn rewards
+				h2 We incentivise running of Tor exit nodes
+				a( href='#initiatives' ).button.white Join the DAO by running a node
 				img#logo( src='/assets/logo.svg' )
 
-			section#intro
-				h2 The Goal of Onion DAO
-				p We reward the running of Tor exit nodes, because good behaviour deserves to be rewarded.
-				// p Onion DAO recognises that public goods run by volunteers result in suboptimal support for said public goods.
-				// p Onion DAO aims to add incentive layers to public goods in order to stimulate entities to support them.
-				div.row
-					a( href='#initiatives' ).button Join the DAO & earn rewards
-					a( target='_blank' href='https://github.com/Onion-DAO/litepaper' ).button.invert Read Litepaper
+			section#initiatives
+				h3 Run a Tor Exit Node, get rewards:
+				section.usps
+					div.usp
+						img( src='/assets/tor-logo.svg' )
+						p Run a Tor exit node. OnionDAO currently runs <b class='metric tor-contribution-percentage'>%</b> of all Tor exit nodes.
+						p Reward: staked ETH (rETH) based on node performance, distributed daily. Monthly POAPs, distributed through poap.delivery.
+						a( href='https://github.com/Onion-DAO/tornode' ).button Read instructions
 					
 			
 			section#rewards
+
+
 				h2 Current OnionDAO rewards
 				p.center To claim OnionDAO rewards, join the #oniondao channel in <a href="https://discord.com/invite/rocketeers" class="link" target="_blank">Discord</a> and type /oniondao. <br>The bot will DM you instructions.
 				section.usps 
+
 					.usp
-						img( src='/assets/lens-logo.svg' )
-						a( target="_blank" href='https://lens.xyz/' ) Lens protocol
-						p whitelist
+						img( src='/assets/reth-logo.svg' )
+						a( target="_blank" href='https://poap.xyz/' ) Staked rETH
+						p tokens, distributed daily
+
+					.usp
+						img( src='/assets/poap-logo.svg' )
+						a( target="_blank" href='https://poap.xyz/' ) POAP
+						p tokens, distributed monthly
 
 					.usp
 						img( src='/assets/logo.svg' )
 						a( target="_blank" href='https://store.palokaj.co/oniondao/' ) OnionDAO Merch
-						p discount
+						p discount, distributed in Discord
 
-					.usp
-						img( src='/assets/generous-vpn-logo.svg' )
-						a( target="_blank" href='https://www.generousvpn.com/' ) Generous VPN
-						p discount
 
 					.usp
 						img( src='/assets/liteserver-logo.png' )
 						a( target="_blank" href='https://liteserver.nl/' ) Liteserver
-						p upgrade
-					
+						p upgrade, distributed in Discord
+
 					.usp
-						img( src='/assets/poap-logo.svg' )
-						a( target="_blank" href='https://poap.xyz/' ) POAP
-						p tokens
+						img( src='/assets/logo.svg' )
+						a( target="_blank" href='#') Airdrop
+						p unconfirmed, no guarantees
+					
+
 					
 					//- .usp
 					//- 	img( src='/assets/logo.svg' )
@@ -77,37 +83,37 @@ html( lang=content.lang )
 
 				a( href='#initiatives' ).button Join the DAO & earn rewards
 
-			section#join.usps
-					h2 How to join the DAO
-					section.usps
-						div.usp
-							p 1️⃣
-							p Support an initiative
-						div.usp
-							p 2️⃣
-							p Receive POAPs
-						div.usp
-							p 3️⃣
-							p POAPs unlock value
-					a.button.invert( href='#initiatives' ) View current initiatives
+			//- section#join.usps
+			//- 		h2 How to join the DAO
+			//- 		section.usps
+			//- 			div.usp
+			//- 				p 1️⃣
+			//- 				p Support an initiative
+			//- 			div.usp
+			//- 				p 2️⃣
+			//- 				p Receive POAPs
+			//- 			div.usp
+			//- 				p 3️⃣
+			//- 				p POAPs unlock value
+			//- 		a.button.invert( href='#initiatives' ) View current initiatives
 
 
-			section#initiatives
-				h2 Initiatives:
-				section.usps
-					div.usp
-						img( src='/assets/tor-logo.svg' )
-						h3 Run a Tor Exit Node (continuous)
-						p Run a Tor exit node. OnionDAO currently runs <b class='metric tor-contribution-percentage'>%</b> of all Tor exit nodes.
-						p Reward: monthly POAPs, distributed through poap.delivery.
-						a( href='https://github.com/Onion-DAO/tornode' ).button Read instructions
+			//- section#initiatives
+			//- 	h2 Initiatives:
+			//- 	section.usps
+			//- 		div.usp
+			//- 			img( src='/assets/tor-logo.svg' )
+			//- 			h3 Run a Tor Exit Node
+			//- 			p Run a Tor exit node. OnionDAO currently runs <b class='metric tor-contribution-percentage'>%</b> of all Tor exit nodes.
+			//- 			p Reward: staked ETH (rETH) based on nopde performance, distributed daily. Monthly POAPs, distributed through poap.delivery.
+			//- 			a( href='https://github.com/Onion-DAO/tornode' ).button Read instructions
 
-					div.usp
-						img( src='/assets/google-sheets-logo.svg' )
-						h3 Find Tor Providers (one-time action)
-						p Help find out which VPS providers are the most Tor exit node friendly
-						p Reward: one-time POAP, distributed through <a target="_blank" href='https://poap.delivery/oniondao-friendly-vps-2022'>poap.delivery</a>.
-						a( href='#initiatives' ).button.expired Initiative expired
+					//- div.usp
+					//- 	img( src='/assets/google-sheets-logo.svg' )
+					//- 	h3 Find Tor Providers (one-time action)
+					//- 	p Help find out which VPS providers are the most Tor exit node friendly
+					//- 	p Reward: one-time POAP, distributed through <a target="_blank" href='https://poap.delivery/oniondao-friendly-vps-2022'>poap.delivery</a>.
+					//- 	a( href='#initiatives' ).button.expired Initiative expired
 
 
 			section#cta
