@@ -155,12 +155,12 @@ exports.update_split = async function() {
     const { transactionHash } = response.event
 
     // Ping mentor
-    const { ping_mentor } = require( '../modules/pushover' )
-    await ping_mentor( {
-        title: `Split updated`,
-        message: `${ recipients.length } recipients added, gas price ${ gas_price_gwei } gwei, safe: ${ safe }`,
-        url: `https://app.splits.org/accounts/${ SPLIT_ADDRESS }/?chainId=42161`
-    } )
+    // const { ping_mentor } = require( '../modules/pushover' )
+    // await ping_mentor( {
+    //     title: `Split updated`,
+    //     message: `${ recipients.length } recipients added, gas price ${ gas_price_gwei } gwei, safe: ${ safe }`,
+    //     url: `https://app.splits.org/accounts/${ SPLIT_ADDRESS }/?chainId=42161`
+    // } )
 
     // Resolve all addresses to ENS names
     const { resolve_address_to_ens } = require( '../modules/web3' )

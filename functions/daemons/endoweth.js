@@ -43,14 +43,14 @@ exports.trigger_endoweth_distribution = async function () {
         log( `Signed transaction: https://arbiscan.io/tx/${ hash }` )
 
         // Ping mentor
-        const { ping_mentor } = require( '../modules/pushover' )
-        await ping_mentor( {
-            title: `OnionDAO Payout`,
-            message: `Payout triggered, gas price ${ gas_price_gwei } gwei, safe: ${ safe }`,
-            url: `https://arbiscan.io/tx/${ hash }`
-        } )
+        // const { ping_mentor } = require( '../modules/pushover' )
+        // await ping_mentor( {
+        //     title: `OnionDAO Payout`,
+        //     message: `Payout triggered, gas price ${ gas_price_gwei } gwei, safe: ${ safe }`,
+        //     url: `https://arbiscan.io/tx/${ hash }`
+        // } )
 
-        // Notify discord
+        // Notify discord67890-
         const { ping_discord } = require( '../modules/discord' )
         await ping_discord( {
             username: `Sir Onion`,
