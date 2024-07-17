@@ -20,7 +20,7 @@ exports.trigger_endoweth_distribution = async function () {
     // Simulate the contract write
     const abi = require( './endoweth_abi' )
     const { privateKeyToAccount } = require( 'viem/accounts' )
-    const { ENDOWETH_ADDRESS: address, SPLITTER_PRIVATE_HOTKEY } = process.env
+    const { ENDOWETH_ADDRESS: address, SPLITTER_PRIVATE_HOTKEY, ONIONDAO_REWARDS_THREAD_ID: thread_id } = process.env
     const call = { 
         account: privateKeyToAccount( SPLITTER_PRIVATE_HOTKEY ),
         address,
@@ -55,7 +55,8 @@ exports.trigger_endoweth_distribution = async function () {
         await ping_discord( {
             username: `Sir Onion`,
             content: `Rewards distributed ([view transaction](https://arbiscan.io/tx/${ hash }), gasprice ${ gas_price_gwei } gwei)
-            \n[View endowment contract here](https://arbiscan.io/address/${ address })`
+            \n[View endowment contract here](https://arbiscan.io/address/${ address })`,
+            thread_id
         } )
 
     } catch ( error ) {

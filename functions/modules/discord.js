@@ -1,4 +1,4 @@
-exports.ping_discord = async function( { username, content, avatar_url } ) {
+exports.ping_discord = async function( { username, content, avatar_url, thread_id } ) {
 
     try {
 
@@ -29,7 +29,9 @@ exports.ping_discord = async function( { username, content, avatar_url } ) {
         }
 
         // Make webhook request, https://discord.com/developers/docs/resources/webhook#execute-webhook-query-string-params
-        const data = await fetch( `${ DISCORD_WEBHOOK_ONIONDAO }?wait=true`, options ).then( async res => {
+        let url = `${ DISCORD_WEBHOOK_ONIONDAO }?wait=true`
+        if( thread_id ) url += `&thread_id=${ thread_id }`
+        const data = await fetch( url, options ).then( async res => {
             const clone_res =  res.clone()
             try { 
                 const json = await res.json()

@@ -69,7 +69,7 @@ exports.update_split = async function() {
     const { dataFromSnap, db } = require( '../modules/firebase' )
     const { log, normalise } = require( '../modules/helpers' )
     const { resolve_ens_to_address } = require( '../modules/web3' )
-    const { SPLIT_ADDRESS } = process.env
+    const { SPLIT_ADDRESS, ONIONDAO_REWARDS_THREAD_ID: thread_id } = process.env
 
 
     // Check if there is chain congestion
@@ -186,6 +186,7 @@ exports.update_split = async function() {
         content: `Reward split updated! ${ recipients.length } nodes are running ([view transaction](https://arbiscan.io/tx/${ transactionHash }), gasprice ${ gas_price_gwei } gwei)
         \n[View updated split here](https://app.splits.org/accounts/${ SPLIT_ADDRESS }/?chainId=42161).
         \n${ "```markdown\n" + table + "```" }`,
+        thread_id
     } )
 
 }
