@@ -1,61 +1,126 @@
-name: Deploy functions on push/merge
+name: Deploy functions
 
+# main + manual dispatch deploy to production, pull requests only dry-run against it
 on:
-  # Trigger: on new tag push
   push:
     branches:
       - main
     paths:
+      - 'functions/**'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
       - '.firebaserc'
       - '.github/workflows/deploy-oracle.yml'
+  pull_request:
+    paths:
       - 'functions/**'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - '.firebaserc'
+      - '.github/workflows/deploy-oracle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never cancel a deploy halfway, queue instead
+concurrency:
+  group: deploy-oracle-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  build:
-    name: Publish changes
+  deploy:
+    name: ${{ github.event_name == 'pull_request' && 'Validate functions' || 'Deploy functions' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
 
     steps:
-      # Get the repo files from current commit
       - name: Cloning repository
-        uses: actions/checkout@v1
-      - name: Checkout main
-        run: git checkout main
+        uses: actions/checkout@v7
 
-      # Set up node and install frontend dependencies
+      # Node version and npm cache both follow functions/
       - name: Set up Node.js (.nvmrc)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
-          node-version-file: "functions/.nvmrc"
-          cache-dependency-path: "functions/package-lock.json"
-          cache: "npm"
+          node-version-file: functions/.nvmrc
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
       - name: Install functions dependencies
-        run: npm ci --loglevel verbose
+        run: npm ci
         working-directory: functions
 
-      - name: Create environment files
+      # Secret goes through env, never interpolated into the script
+      - name: Create environment file
+        env:
+          FUNCTIONS_DOTENV: ${{ secrets.FUNCTIONS_DOTENV }}
         run: |
-          echo -e "${{ secrets.FUNCTIONS_DOTENV }}" > .env
-        working-directory: functions
+          printf '%s\n' "$FUNCTIONS_DOTENV" > functions/.env
+          grep -qE '^[A-Za-z_][A-Za-z0-9_]*=' functions/.env || { echo "::error::FUNCTIONS_DOTENV holds no KEY=value lines"; exit 1; }
+          echo "functions/.env: $(grep -cE '^[A-Za-z_][A-Za-z0-9_]*=' functions/.env) variables"
 
-      - name: Set up firebase
-        uses: w9jds/setup-firebase@main
-        with:
-          project_id: production
-          gcp_sa_key: ${{ secrets.SERVICE_ACCOUNT_PRODUCTION }}
+      # The secret is service account JSON, either raw or base64 encoded
+      - name: Write GCP credentials
+        env:
+          GCP_SA_KEY: ${{ secrets.SERVICE_ACCOUNT_PRODUCTION }}
+        run: |
+          key_file="$RUNNER_TEMP/gcp-key.json"
+          key="${GCP_SA_KEY#"${GCP_SA_KEY%%[![:space:]]*}"}"
+
+          umask 077
+          if [[ "$key" == '{'* ]]; then
+            printf '%s\n' "$key" > "$key_file"
+          else
+            printf '%s' "$key" | tr -d '[:space:]' | base64 -d > "$key_file" 2>/dev/null || true
+          fi
+
+          if [[ ! -s "$key_file" ]] || ! jq -e .client_email "$key_file" > /dev/null 2>&1; then
+            rm -f "$key_file"
+            echo "::error::SERVICE_ACCOUNT_PRODUCTION is not service account JSON (raw or base64 encoded)"
+            exit 1
+          fi
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$key_file" >> "$GITHUB_ENV"
+
       - name: Deploy functions
-        run: firebase deploy --only functions
+        if: github.event_name != 'pull_request'
+        run: npx --yes firebase-tools@15.32.1 deploy --only functions --project production --non-interactive --force
+
+      # Validates against the real project without changing it
+      - name: Dry-run deploy functions
+        if: github.event_name == 'pull_request'
+        run: npx --yes firebase-tools@15.32.1 deploy --only functions --project production --non-interactive --force --dry-run
 
       - name: Send push notification
+        if: github.event_name != 'pull_request' && success()
+        continue-on-error: true
         env:
-          MSG_TITLE: "Success: OnionDAO Oracle"
-          MSG_CONTENT: "functions CI success"
-        run: curl -f -X POST -d "token=${{ secrets.PUSHOVER_TOKEN }}&user=${{ secrets.PUSHOVER_USER }}&title=$MSG_TITLE&message=$MSG_CONTENT&priority=1" https://api.pushover.net/1/messages.json
-        
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+        run: |
+          curl -fsS https://api.pushover.net/1/messages.json \
+            --form-string "token=$PUSHOVER_TOKEN" \
+            --form-string "user=$PUSHOVER_USER" \
+            --form-string "title=Success: OnionDAO Oracle" \
+            --form-string "message=functions CI success" \
+            --form-string "priority=1"
+
       - name: Send failure push notification
-        if: ${{ failure() }}
+        if: github.event_name != 'pull_request' && failure()
+        continue-on-error: true
         env:
-          MSG_TITLE: "Failure: OnionDAO Oracle"
-          MSG_CONTENT: "functions CI failed"
-        run: curl -f -X POST -d "token=${{ secrets.PUSHOVER_TOKEN }}&user=${{ secrets.PUSHOVER_USER }}&title=$MSG_TITLE&message=$MSG_CONTENT&priority=1" https://api.pushover.net/1/messages.json
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+        run: |
+          curl -fsS https://api.pushover.net/1/messages.json \
+            --form-string "token=$PUSHOVER_TOKEN" \
+            --form-string "user=$PUSHOVER_USER" \
+            --form-string "title=Failure: OnionDAO Oracle" \
+            --form-string "message=functions CI failed" \
+            --form-string "priority=1"
