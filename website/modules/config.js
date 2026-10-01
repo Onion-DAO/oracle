@@ -1,5 +1,8 @@
-const ip = require( 'ip' )
+const { networkInterfaces } = require( 'os' )
 const { normalize } = require( 'path' )
+
+// First non-internal IPv4 address of this machine, loopback when offline
+const localIp = () => Object.values( networkInterfaces() ).flat().find( ( { family, internal } ) => family == 'IPv4' && !internal )?.address || '127.0.0.1'
 
 module.exports = {
 
@@ -21,7 +24,7 @@ module.exports = {
 	system: {
 
 		// // ⚠️ You should edit the 'url' key to be the production URL
-		url: process.env.BASE_URL || ( process.env.NODE_ENV == 'production' ? 'https://oniondao.web.app/' : 'http://' + ip.address() + ':3000/' ),
+		url: process.env.BASE_URL || ( process.env.NODE_ENV == 'production' ? 'https://oniondao.web.app/' : 'http://' + localIp() + ':3000/' ),
 
 		public: normalize( process.env.NODE_ENV == 'production' ? __dirname + '/../docs/' : __dirname + '/../public/' ),
 		source: normalize( __dirname + '/../src/' ),

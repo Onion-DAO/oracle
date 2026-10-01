@@ -3,20 +3,20 @@ const getContent = require( __dirname + '/parse-locales' )
 const pfs = require( __dirname + '/parse-fs' )
 const pug = require( 'pug' )
 const { inlinecss } = require( './publish-css' )
-const { minify } = require( 'html-minifier' )
+const { minify } = require( 'html-minifier-terser' )
 const { SitemapStream, streamToPromise } = require( 'sitemap' )
 
 const site = require( __dirname + '/config' )
 
 // Compile pug to html
 // Return a resolved promise with the file data
-const compilepug = ( path, filename, css, content ) => Promise.resolve( {
+const compilepug = async ( path, filename, css, content ) => ( {
 	path: path,
 	filename: filename,
 	baseSlug: content.slug,
 	lang: content.lang,
 	// Compile the pug file with the site config as a local variable
-	html: minify( pug.renderFile( path + filename, { site: site, css: css, content: content, basedir: path } ), {
+	html: await minify( pug.renderFile( path + filename, { site: site, css: css, content: content, basedir: path } ), {
 		html5: true,
 		minifyCSS: true,
 		minifyJS: true,
