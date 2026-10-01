@@ -45,29 +45,11 @@ async function get_split_client() {
 
 }
 
-function bandwidth_score_multiplier( bandwidth=0 ) {
-
-    // Score relay based bandwidth. Assumption: 1Gbit/s is max, in MiB/s that's 125 MiB/s. So 1 is low and 100 is high.
-    // note this metric is derived from the observed_bandwidth field in the tor metrics which is bytes per second observed over the last 24 hours
-    const max_bandwidth_mib = 125
-
-    // Make the bandwidth sane, just in case the api does weird things
-    bandwidth = Math.min( bandwidth, max_bandwidth_mib )
-
-    // Calculate the weight factor based on the bandwidth
-    // explanation: https://chat.openai.com/share/b40e0f25-b1ad-466c-850f-4b99f5d1ed97
-    const weight_factor = bandwidth ** .25
-
-    return weight_factor
-    
-
-}
-
 exports.update_split = async function() {
 
     // Dependencies
     const { dataFromSnap, db } = require( '../modules/firebase' )
-    const { log, normalise } = require( '../modules/helpers' )
+    const { log } = require( '../modules/helpers' )
     const { resolve_ens_to_address } = require( '../modules/web3' )
     const { SPLIT_ADDRESS, ONIONDAO_REWARDS_THREAD_ID: thread_id } = process.env
 
@@ -82,64 +64,20 @@ exports.update_split = async function() {
     const nodes = await db.collection( 'tor_nodes' ).where( 'running', '==', true ).get().then( dataFromSnap )
     log( `Running node count: ${ nodes.length }` )
 
-    // Resolve the ens addresses of all nodes
-    const resolved_nodes = await Promise.all( nodes.map( async node => ( {
-        ...node,
-        wallet: normalise( await resolve_ens_to_address( node.wallet ) )
-    } ) ) )
-    log( `Resolved nodes:`, resolved_nodes.length )
-
-    // Check for node wallet address duplicates, if found sum their cumulative_bandwidth_mib
-    const deduped_nodes = resolved_nodes.reduce( ( deduped, node ) => {
-        
-        // If existing node found, sum bandwidth and do not add node to deduped list
-        const existing = deduped.find( n => n.wallet === node.wallet )
-        if( existing ) existing.cumulative_bandwidth_mib += node.cumulative_bandwidth_mib
-
-        // If no existing node found, add node to deduped list
-        else deduped.push( node )
-
-
-        // Return accumulated deduped list
-        return deduped
-
-    }, [] )
-    log( `Deduped nodes:`, deduped_nodes.length )
-
-    // Calculate the reward weight for each node
-    const weighted_nodes = deduped_nodes.map( node => ( {
-        ...node, 
-        reward_weight: bandwidth_score_multiplier( node.cumulative_bandwidth_mib )
-    } ) )
-    log( `Weighted nodes: ${ weighted_nodes.length }` )
-
-
-    // Calculate relative score weights
-    const BigNumber = require( 'bignumber.js' )
-    BigNumber.config( { ROUNDING_MODE: 1 } ) // Always round down, https://mikemcl.github.io/bignumber.js/#constructor-properties
-    const total_score = weighted_nodes.reduce( ( score, { reward_weight } ) => score.plus( reward_weight ), new BigNumber( 0 ) )
-    log( `Total score: ${ total_score }` )
-
-    // Formulate scores as splits objest, see https://docs.splits.org/sdk/splits#updatesplit
-    const recipients = await Promise.all( weighted_nodes.map( async ( { wallet, reward_weight, cumulative_bandwidth_mib } ) => ( {
-        address: await resolve_ens_to_address( wallet ),
-        percentAllocation: new BigNumber( reward_weight ).div( total_score ).times( 100 ).decimalPlaces( 4 ).toNumber(),
-        cumulative_bandwidth_mib
-    } ) ) )
-
-    // Handle the total allocation mismatch, assign the unallocated amount back to the OnionDAO
-    const total_allocation = recipients.reduce( ( allocated, { percentAllocation } ) => allocated.plus( percentAllocation ), new BigNumber( 0 ) )
-    const unallocated = new BigNumber( 100 ).minus( total_allocation ).toNumber()
-    log( `Total allocation: ${ total_allocation }, unallocated: ${ unallocated }` )
-    if( unallocated ) recipients.push( {
-        address: await resolve_ens_to_address( 'oniondao.eth' ),
-        percentAllocation: unallocated,
-    } )
-
+    // Weighted recipients, throws rather than redistributing shares on any lookup failure
+    const { build_split_recipients } = require( '../modules/split_recipients' )
+    const dao_address = await resolve_ens_to_address( 'oniondao.eth' )
+    if( !dao_address ) throw new Error( `Could not resolve oniondao.eth` )
+    const recipients = await build_split_recipients( nodes, resolve_ens_to_address, dao_address )
     log( `Recipients:`, recipients.length )
 
-    // Get the aplit client
+    // Get the split client
     const client = await get_split_client()
+
+    // One split update per day, even if the scheduler delivers twice. Claimed last so failed setup doesn't use up the day.
+    const { claim_daily_run } = require( '../modules/daily_run' )
+    const run = await claim_daily_run( 'update_split' )
+    if( !run ) return log( `Split already updated today, skipping` )
 
     // Update the split
     log( `Updating split ${ SPLIT_ADDRESS } with ${ recipients.length } recipients` )
@@ -153,6 +91,7 @@ exports.update_split = async function() {
     // const response = { event: { transactionHash: '0x1234567890' } }
     log( `Split updated:`, response )
     const { transactionHash } = response.event
+    await run.update( { finished: Date.now(), transaction_hash: transactionHash, recipients: recipients.length } )
 
     // Ping mentor
     // const { ping_mentor } = require( '../modules/pushover' )

@@ -30,6 +30,7 @@ exports.trigger_endoweth_distribution = async function () {
     log( `Simulating contract write:`, call )
     
     try {
+
         const { result, request } = await public_client.simulateContract( call )
         log( `Simulated contract write:`, result )
 
@@ -38,9 +39,15 @@ exports.trigger_endoweth_distribution = async function () {
         const { get_wallet_client } = require( '../modules/web3' )
         const wallet_client = await get_wallet_client( arbitrum, SPLITTER_PRIVATE_HOTKEY )
 
+        // One distribution per day, even if the scheduler delivers twice. Claimed last so failed setup doesn't use up the day.
+        const { claim_daily_run } = require( '../modules/daily_run' )
+        const run = await claim_daily_run( 'endoweth_distribution' )
+        if( !run ) return log( `Distribution already triggered today, skipping` )
+
         // Sign the transaction
         const hash = await wallet_client.writeContract( request )
         log( `Signed transaction: https://arbiscan.io/tx/${ hash }` )
+        await run.update( { finished: Date.now(), transaction_hash: hash } )
 
         // Ping mentor
         // const { ping_mentor } = require( '../modules/pushover' )
@@ -50,7 +57,7 @@ exports.trigger_endoweth_distribution = async function () {
         //     url: `https://arbiscan.io/tx/${ hash }`
         // } )
 
-        // Notify discord67890-
+        // Notify discord
         const { ping_discord } = require( '../modules/discord' )
         await ping_discord( {
             username: `Sir Onion`,

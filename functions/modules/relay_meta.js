@@ -1,4 +1,3 @@
-const fetch = require( "isomorphic-fetch" )
 const { log } = require( "./helpers" )
 const { check_port_availability } = require( "./network" )
 
@@ -49,7 +48,7 @@ exports.get_relay_status = async function( ip, verbose=false ) {
     const [ port_80_available, port_9001_available, tor_metrics ] = await Promise.all( [
         check_port_availability( ip, '80', 2000 ).catch( f => false ),
         check_port_availability( ip, '9001', 2000 ).catch( f => false ),
-        fetch( `https://onionoo.torproject.org/details?search=${ ip }` ).then( res => res.json() ).catch( e => ( { error: e.message } ) )
+        fetch( `https://onionoo.torproject.org/details?type=relay&search=${ ip }`, { signal: AbortSignal.timeout( 30_000 ) } ).then( res => res.json() ).catch( e => ( { error: e.message } ) )
     ] )
     
     // One ip may run many relays, check if at least one is up
