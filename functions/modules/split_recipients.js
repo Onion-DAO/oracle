@@ -2,7 +2,11 @@ const BigNumber = require( 'bignumber.js' )
 const { eth_address_regex, ens_name_regex } = require( './regex' )
 const { log } = require( './helpers' )
 
-// Rewards scale with bandwidth up to 1 Gbit/s (125 MiB/s), dampened so small nodes still matter
+/**
+ * Reward weight of an operator. Scales with bandwidth up to 1 Gbit/s (125 MiB/s), dampened so small nodes still matter.
+ * @param {number} bandwidth_mib - Observed bandwidth in MiB/s
+ * @returns {number} Weight between 0 and ~3.3
+ */
 const bandwidth_weight = ( bandwidth_mib=0 ) => Math.min( bandwidth_mib, 125 ) ** .25
 
 /**
