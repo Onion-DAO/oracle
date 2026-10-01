@@ -1,43 +1,30 @@
 import dir from 'recursive-readdir'
 import { normalize } from 'path'
 import { promises as fs } from 'fs'
-import request from 'request-promise-native'
+
+// Some sites block requests that do not look like a browser
+const headers = { 'User-Agent': 'Chrome/79.0.3945.117' }
+
+// Native fetch, slow hosts count as broken after 30s
+const request = uri => fetch( uri, { headers, signal: AbortSignal.timeout( 1000 * 30 ) } )
 
 // Fallback request
 const get = async link => {
 
 	// If it has a protocol:
-	if( !link.url.match( /^\/\// ) ) return request( {
-		uri: link.url,
-		resolveWithFullResponse: true,
-		headers: {
-			'User-Agent': 'Chrome/79.0.3945.117'
-		}
-	} )
+	if( !link.url.match( /^\/\// ) ) return request( link.url )
 
 	// If it has no protocol
 	console.log( `https:${ link.url }` )
 
 	// Try https
-	const https = await request( {
-		uri: `https:${ link.url }`,
-		resolveWithFullResponse: true,
-		headers: {
-			'User-Agent': 'Chrome/79.0.3945.117'
-		}
-	} ).catch( e => false )
+	const https = await request( `https:${ link.url }` ).catch( e => false )
 	if( https ) return https
 
 	console.log( 'Https didnt bite' )
 
 	// Otherwise try http
-	const http = await request( {
-		uri: `http:${ link.url }`,
-		resolveWithFullResponse: true,
-		headers: {
-			'User-Agent': 'Chrome/79.0.3945.117'
-		}
-	} ).catch( e => false )
+	const http = await request( `http:${ link.url }` ).catch( e => false )
 	if( http ) return http
 
 	// If neither worked..
@@ -51,8 +38,8 @@ export const urls = str => Array.from( str.matchAll( /(?:href=(?:'|"))(.*?\/\/.*
 
 // Check if url is broken
 export const isBroken = link => get( link )
-.then( ( { statusCode } ) => statusCode == 200 ? false : { ...link, code: statusCode } )
-.catch( ( { statusCode, name, message, ...other } ) => ( { ...link, code: statusCode || name || message || other } ) )
+.then( ( { status } ) => status == 200 ? false : { ...link, code: status } )
+.catch( ( { cause, name, message, ...other } ) => ( { ...link, code: cause?.code || name || message || other } ) )
 
 // Get links with files
 export const getLinks = async path => {

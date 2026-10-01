@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import aspromised from 'chai-as-promised'
 chai.use( aspromised )
 

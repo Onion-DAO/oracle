@@ -2,25 +2,15 @@
 const { del, mkdir } = require( __dirname + '/parse-fs' )
 const { promises: fs } = require( 'fs' )
 
-// Recursive copy library
-const ncp = require( 'ncp' )
-
 // Image parsing
 const compressImage = require( __dirname + '/parse-images' )
-
-// Promise ncp
-const pncp = ( source, dest, opt ) => new Promise( ( resolve, reject ) => {
-
-	ncp( source, dest, opt, err => err ? reject( err ) : resolve() )
-
-} )
 
 const copyfolder = async ( source, destination, filename ) => {
 
 	await mkdir( destination )
 
-	// No clobber means no overwrites for existing files
-	await pncp( source, destination, { clobber: false } )
+	// No force means no overwrites for existing files
+	await fs.cp( source, destination, { recursive: true, force: false } )
 }
 
 const copyassets = async ( site, filename ) => {
@@ -29,9 +19,9 @@ const copyassets = async ( site, filename ) => {
 
 		const { extensions } = site.system.images
 
-		// Delete relevant assets
+		// Delete the stale copy of a single changed asset so it gets copied again
+		// ( a full build starts with an empty public folder, the old `assets/*` glob never matched anything )
 		if( filename ) await del( `${ site.system.public }/assets/${ filename }` )
-		else await del( site.system.public + 'assets/*' )
 
 		// Copy entire asset folder
 		await copyfolder( site.system.source + 'assets', site.system.public + 'assets' )
