@@ -3,11 +3,17 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": { },
+  "functions": {},
   "hosting": {
     "public": "website/docs",
     "rewrites": [
-      { "source": "/api/**", "function": "public_api" }
+      {
+        "source": "/api/**",
+        "function": {
+          "functionId": "public_api",
+          "region": "us-central1"
+        }
+      }
     ]
   }
 }
