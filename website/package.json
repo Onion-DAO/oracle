@@ -1,6 +1,6 @@
 {
   "name": "static-page-boilerplate-webpack-browsersync",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Static Webpage with Webpack and Browsersync Boilerplate",
   "main": "app.js",
   "scripts": {
