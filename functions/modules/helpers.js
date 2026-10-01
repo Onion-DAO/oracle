@@ -6,13 +6,16 @@ const log = ( ...comments ) => {
     if( dev || verbose == 'true' ) console.log( ...comments )
 }
 
+// Errors always surface in the function logs
+const error = ( ...comments ) => console.error( ...comments )
+
 // Object properties checker
 const require_properties = ( obj={}, required_properties=[] ) => {
 
     const keys = Object.keys( obj )
-    const missing_keys = required_properties.filter( key => keys.includes( key ) )
+    const missing_keys = required_properties.filter( key => !keys.includes( key ) )
     if( missing_keys.length ) log( `Checking keys `, keys, `against required: `, required_properties, ' for object ', obj, `missing: `, missing_keys )
-    if( !missing_keys.length ) throw new Error( `Missing required properties in request: ${ missing_keys.join( ', ' ) }` )
+    if( missing_keys.length ) throw new Error( `Missing required properties in request: ${ missing_keys.join( ', ' ) }` )
 
 }
 
@@ -38,14 +41,23 @@ const round_to_decimals = ( number, decimals=2 ) => Math.round( number * 10 ** d
 
 const normalise = string => `${ string }`.toLowerCase().trim()
 
+// Errors that carry the HTTP status the api should answer with
+const http_error = ( status, message ) => Object.assign( new Error( message ), { status } )
+
+// Values from the database end up in html, never let them become markup
+const escape_html = string => `${ string }`.replace( /[&<>"']/g, char => `&#${ char.charCodeAt( 0 ) };` )
+
 module.exports = {
     dev,
     log,
+    error,
     require_properties,
     allow_only_these_properties,
     year_number,
     month_number,
     day_number,
     round_to_decimals,
-    normalise
+    normalise,
+    http_error,
+    escape_html
 }

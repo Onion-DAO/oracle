@@ -1,21 +1,21 @@
 const { Router } = require( 'express' )
 const route = Router()
-const { dev, log, require_properties, allow_only_these_properties } = require( '../modules/helpers' )
+const { dev, log, require_properties, allow_only_these_properties, http_error, escape_html } = require( '../modules/helpers' )
 const { db, dataFromSnap } = require( '../modules/firebase' )
-const { check_port_availability } = require( '../modules/network' )
-const fetch = require( 'isomorphic-fetch' )
-const { ipv4_regex, email_regex, tor_nickname_regex, bandwidth_regex, reduced_exit_policy_regex, wallet_or_ens_regex } = require( '../modules/regex' )
+const { check_port_availability, is_public_ipv4 } = require( '../modules/network' )
+const { exit_notice_names_wallet } = require( '../modules/exit_notice' )
+const { ipv4_regex, email_regex, tor_nickname_regex, bandwidth_regex, reduced_exit_policy_regex, wallet_or_ens_regex, twitter_regex } = require( '../modules/regex' )
 const { register_total_tor_exit_nodes } = require( '../daemons/tor_nodes' )
 
 
 /* ///////////////////////////////
 // Semantic endpoints
 // /////////////////////////////*/
-route.get( '/', ( req, res ) => res.send( 'This is the OnionDAO.eth API' ) )
+route.get( '/', ( req, res ) => res.type( 'text/plain' ).send( 'This is the OnionDAO.eth API' ) )
 
 /* ///////////////////////////////
 // Exposing data */
-route.get( '/list/:property/:format?', async ( req, res ) => {
+route.get( [ '/list/:property', '/list/:property/:format' ], async ( req, res ) => {
 
     try {
 
@@ -24,7 +24,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 
         // WHen running publicly, expose only ip addresses
         const public_properties = [ 'ip', 'wallet', 'last_score' ]
-        if( !process.env.development && !public_properties.includes( property ) ) return res.send( `This is a private endpoint sorry` )
+        if( !process.env.development && !public_properties.includes( property ) ) return res.status( 403 ).type( 'text/plain' ).send( `This is a private endpoint sorry` )
 
         // Get all node data
         const { minimum_score=50 } = await db.collection( 'settings' ).doc( 'tor' ).get().then( dataFromSnap )
@@ -34,7 +34,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
         if( property == 'raw' ) return res.json( nodes )
 
         // Manual filters
-        if( property == 'amount' ) return res.send( `Tor node amount: ${ nodes.length }` )
+        if( property == 'amount' ) return res.type( 'text/plain' ).send( `Tor node amount: ${ nodes.length }` )
 
         // If a specific property was requested, filter it
         let filtered_data = []
@@ -42,7 +42,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
         // Simple properties
         if( property != 'last_score' ) filtered_data = nodes.map( node => node[ property ] )
             .filter( data => !!data )
-            .map( entry => entry.toLowerCase() )
+            .map( entry => `${ entry }`.toLowerCase() )
             .reduce( ( acc, val ) => {
                 if( !acc.includes( val ) ) return [ ...acc, val ]
                 return acc
@@ -59,7 +59,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
         if( property == 'twitter' ) filtered_data = filtered_data.map( entry => entry.includes( '@' ) ? entry : `@${ entry }` )
 
         if( format == 'csv' ) {
-            return res.send( `<body><p>${ filtered_data.join( `\n<br />` ) }</p></body>` )
+            return res.send( `<body><p>${ filtered_data.map( escape_html ).join( `\n<br />` ) }</p></body>` )
         } else {
             return res.json( filtered_data )
         }
@@ -67,7 +67,7 @@ route.get( '/list/:property/:format?', async ( req, res ) => {
 
 
     } catch ( e ) {
-        return res.json( { error: `🛑 Node list error: ${ e.message }` } )
+        return res.status( 500 ).json( { error: `🛑 Node list error: ${ e.message }` } )
     }
 
 } )
@@ -83,7 +83,7 @@ route.get( '/metrics/', async ( req, res ) => {
         // If data is old, refresh. Not relying on cron because it is a recurring cost on firebase
         const five_minutes_in_ms = 1000 * 60 * 5
         const five_minutes_ago = Date.now() - five_minutes_in_ms
-        if( dev || tor_node_metrics.updated < five_minutes_ago ) {
+        if( dev || !( tor_node_metrics.updated > five_minutes_ago ) ) {
             log( `Getting remote Tor metrics` )
             tor_node_metrics = await register_total_tor_exit_nodes()
         }
@@ -93,7 +93,7 @@ route.get( '/metrics/', async ( req, res ) => {
 
 
     } catch ( e ) {
-        return res.json( {
+        return res.status( 500 ).json( {
             error: `Metrics error: ${ e.message }`
         } )
     }
@@ -107,21 +107,21 @@ route.get( '/:node_ip', async ( req, res ) => {
         const { node_ip } = req.params
 
         // Validations
-        if( !`${ node_ip }`.match( ipv4_regex ) ) throw new Error( `Invalid ipv4 input` )
+        if( !`${ node_ip }`.match( ipv4_regex ) ) throw http_error( 400, `Invalid ipv4 input` )
 
         // Check database
         const node_entry = await db.collection( 'tor_nodes' ).doc( node_ip ).get()
-        if( !node_entry.exists ) throw new Error( `This ipv4 is not registered as an OnionDAO node. Should it be? Ask @actuallymentor for help on Twitter.` )
+        if( !node_entry.exists ) throw http_error( 404, `This ipv4 is not registered as an OnionDAO node. Should it be? Ask @actuallymentor for help on Twitter.` )
 
         const node_entry_data = dataFromSnap( node_entry )
         const { created_human, wallet, last_score } = node_entry_data
 
         log( `Data for ${ node_ip }: `, JSON.stringify( node_entry_data ) )
-        return res.send( `✅ This node belongs to ${ wallet } and was registered with the Oracle on ${ created_human }. The last known score is: ${ last_score }` )
+        return res.type( 'text/plain' ).send( `✅ This node belongs to ${ wallet } and was registered with the Oracle on ${ created_human }. The last known score is: ${ last_score }` )
 
 
     } catch ( e ) {
-        return res.send( `🛑 Node irregularity: ${ e.message }` )
+        return res.status( e.status || 500 ).type( 'text/plain' ).send( `🛑 Node irregularity: ${ e.message }` )
     }
 
 } )
@@ -137,37 +137,48 @@ route.post( '/', async ( req, res ) => {
         const expected_properties = [ 'ip', 'email', 'bandwidth', 'reduced_exit_policy', 'node_nickname', 'wallet' ]
         const optional_properties = [ 'twitter' ]
         log( `Request received with body: `, typeof req.body, JSON.stringify( req.body ), ' ip: ', req.ip, req.ips, req.headers[ 'x-appengine-user-ip' ], Object.keys( req.headers ).concat( ', ' ) )
-        require_properties( req.body, expected_properties )
-        allow_only_these_properties( req.body, [ ...expected_properties, ...optional_properties ] )
+        const body = req.body || {}
+        try {
+            require_properties( body, expected_properties )
+            allow_only_these_properties( body, [ ...expected_properties, ...optional_properties ] )
+        } catch ( e ) {
+            throw http_error( 400, e.message )
+        }
 
         // Validate input
-        const { ip, email, bandwidth, reduced_exit_policy, node_nickname, wallet, twitter } = req.body
-        if( !`${ ip }`.match( ipv4_regex ) ) throw new Error( `Invalid ipv4 input` )
-        if( !`${ email }`.match( email_regex ) ) throw new Error( `Invalid email input` )
-        if( !`${ bandwidth }`.match( bandwidth_regex ) ) throw new Error( `Invalid bandwidth submission` )
-        if( !`${ node_nickname }`.match( tor_nickname_regex ) ) throw new Error( `Invalid node nickname` )
-        if( !`${ reduced_exit_policy }`.match( reduced_exit_policy_regex ) ) throw new Error( `Unexpected exit policy` )
-        if( !`${ wallet }`.match( wallet_or_ens_regex ) ) throw new Error( `Invalid wallet address` )
+        const { ip, email, bandwidth, reduced_exit_policy, node_nickname, wallet, twitter } = body
+        if( !`${ ip }`.match( ipv4_regex ) ) throw http_error( 400, `Invalid ipv4 input` )
+        if( !is_public_ipv4( ip ) ) throw http_error( 400, `${ ip } is not a public ipv4 address` )
+        if( !`${ email }`.match( email_regex ) ) throw http_error( 400, `Invalid email input` )
+        if( !`${ bandwidth }`.match( bandwidth_regex ) ) throw http_error( 400, `Invalid bandwidth submission` )
+        if( !`${ node_nickname }`.match( tor_nickname_regex ) ) throw http_error( 400, `Invalid node nickname` )
+        if( !`${ reduced_exit_policy }`.match( reduced_exit_policy_regex ) ) throw http_error( 400, `Unexpected exit policy` )
+        if( !`${ wallet }`.match( wallet_or_ens_regex ) || wallet.length > 255 ) throw http_error( 400, `Invalid wallet address` )
+        if( twitter && !`${ twitter }`.match( twitter_regex ) ) throw http_error( 400, `Invalid twitter handle` )
 
         // Check port availability for the node
         const port_availability_error = await Promise.all( [
             check_port_availability( ip, '80' ),
             check_port_availability( ip, '9001' )
-        ] ).then( f => undefined ).catch( err => err )
+        ] ).then( () => undefined ).catch( err => err )
 
-        if( port_availability_error ) throw new Error( `Port scan error: ${ port_availability_error }` )
+        if( port_availability_error ) throw http_error( 422, `Port scan error: ${ port_availability_error }` )
 
-        // Check that the Tor Exit notice page contains the claimed addresses
-        const exit_notice_html = await fetch( `http://${ ip }` ).then( res => res.text() )
-        if( !exit_notice_html.includes( wallet ) ) throw new Error( `Exit notice page does not include the claimed wallet address` )
-        // if( !exit_notice_html.includes( email ) ) throw new Error( `Exit notice page does not include the claimed email address` )
+        // The exit notice must name the claimed wallet, only the node operator can put it there
+        const exit_notice_html = await fetch( `http://${ ip }/`, { redirect: 'manual', signal: AbortSignal.timeout( 10_000 ) } )
+            .then( res => res.text() )
+            .catch( e => {
+                throw http_error( 422, `Could not load the exit notice on port 80: ${ e.message }` )
+            } )
+        if( !exit_notice_names_wallet( exit_notice_html, wallet ) ) throw http_error( 422, `Exit notice page does not include the claimed wallet address` )
 
-        // Register node in Firestore
-        const node_object = expected_properties.reduce( ( acc, val ) => ( { ...acc, [val]: req.body[ val ] } ), {} )
+        // Register node in Firestore, ENS names are case-insensitive so store them lowercase
+        const node_object = expected_properties.reduce( ( acc, val ) => ( { ...acc, [val]: body[ val ] } ), {} )
+        if( /\.eth$/i.test( wallet ) ) node_object.wallet = wallet.toLowerCase()
         const registration_entry = { ...node_object, created: Date.now(), created_human: new Date().toString(), updated: Date.now(), updated_human: new Date().toString() }
 
         // Format optional properties
-        if( twitter && twitter.length <= 16 ) registration_entry.twitter = twitter
+        if( twitter ) registration_entry.twitter = twitter
 
         // Manage old entry clashes
         const old_node_entry = await db.collection( 'tor_nodes' ).doc( ip ).get()
@@ -191,19 +202,19 @@ route.post( '/', async ( req, res ) => {
         const { ping_mentor } = require( '../modules/pushover' )
         await ping_mentor( {
             title: `OnionDAO: New Tor Node ${ node_nickname }`,
-            message: `by ${ email } aka ${ twitter }/${ wallet } with ${ bandwidth }TB/${ reduced_exit_policy ? 'REP' : 'LIM' }`,
+            message: `by ${ email } aka ${ twitter }/${ wallet } with ${ bandwidth }TB/${ /^y/i.test( reduced_exit_policy ) ? 'REP' : 'LIM' }`,
             url: `http://${ ip }`
         } )
 
         // Return plaintext success message
-        return res.send( `✅ OnionDAO Oracle successfully registered your node` )
+        return res.type( 'text/plain' ).send( `✅ OnionDAO Oracle successfully registered your node` )
 
     } catch ( e ) {
 
         log( `Node route error: `, e )
 
-        // Return plaintext error message
-        return res.send( `🛑 OnionDAO Oracle error: ${ e.message }` )
+        // Plaintext error message, installers before 1.0 look for the 🛑 instead of the status code
+        return res.status( e.status || 500 ).type( 'text/plain' ).send( `🛑 OnionDAO Oracle error: ${ e.message }` )
 
     }
 
