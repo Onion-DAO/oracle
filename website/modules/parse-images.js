@@ -33,7 +33,7 @@ const compressOneImageToMany = async ( site, filename ) => {
 
 		// System settings
 		const { system: { images } } = site
-		const { sizes=[], defaultQuality } = images
+		const { sizes=[], defaultCompression } = images
 
 		const old_listeners = process.getMaxListeners()
 		const new_listeners = old_listeners + ( sizes.length * 3 )
@@ -52,19 +52,19 @@ const compressOneImageToMany = async ( site, filename ) => {
 
 		// Create convertor stream handlers
 		const jpegConversionStreams = sizes.map( size => ( {
-			convertor: sharp().resize( selectMaxSize( size ), undefined ).jpeg( { quality: defaultQuality } ),
+			convertor: sharp().resize( selectMaxSize( size ), undefined ).jpeg( { quality: defaultCompression } ),
 			size: size,
 			extension: 'jpg'
 		} ) )
 
 		const webpConversionStreams = sizes.map( size => ( {
-			convertor: sharp().resize( selectMaxSize( size ), undefined ).webp( { quality: defaultQuality } ),
+			convertor: sharp().resize( selectMaxSize( size ), undefined ).webp( { quality: defaultCompression } ),
 			size: size,
 			extension: 'webp'
 		} ) )
 
 		const avifConversionStreams = sizes.map( size => ( {
-			convertor: sharp().resize( selectMaxSize( size ), undefined ).avif( { quality: defaultQuality } ),
+			convertor: sharp().resize( selectMaxSize( size ), undefined ).avif( { quality: defaultCompression } ),
 			size: size,
 			extension: 'avif'
 		} ) )

@@ -51,10 +51,13 @@ const bsyncplugconfig = {
   callback: f => { thebs = bs.get( servername ) }
 }
 
+// Expose .env values to the bundle as process.env.KEY, DefinePlugin wants every value as a JSON string
+const dotenvValues = Object.fromEntries( Object.entries( dotenv.config( { quiet: true } ).parsed || {} ).map( ( [ key, value ] ) => [ key, JSON.stringify( value ) ] ) )
+
 const envPlugin = new webpack.DefinePlugin( {
   process: {
     env: {
-      ...JSON.stringify( dotenv.config().parsed ),
+      ...dotenvValues,
       NODE_ENV: JSON.stringify( process.env.NODE_ENV )
     }
   }
