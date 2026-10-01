@@ -1,21 +1,13 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# Lint before committing: errors block the commit, warnings are only shown
+cd functions || exit 1
 
-echo "\n🤖 [ precommit hook ] linting before committing..."
-
-
-# If errors, make it clear they cannot commit
-if ! lint_outcome=$( npm run lint ); then
-    echo "🚨 [ precommit hook ] lint encountered blocking issues, fix them before committing\n"
+if ! lint_outcome=$( npm run --silent lint:check 2>&1 ); then
+    echo "🚨 [ precommit hook ] lint found blocking issues, fix them before committing"
     echo "$lint_outcome"
     exit 1
 fi
 
-# If warnings, suggest they fix them
-if echo $lint_outcome | grep -q "warning"; then
-    echo "⚠️ [ precommit hook ] lint encountered warnings, consider fixing them before pushing\n"
+if echo "$lint_outcome" | grep -q "warning"; then
+    echo "⚠️ [ precommit hook ] lint found warnings, consider fixing them (npm run lint)"
     echo "$lint_outcome"
-    exit 0
 fi
-
-echo "✅ [ precommit hook ] lint encountered no blocking issues\n"
