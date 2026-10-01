@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1] - 2026-10-01
+
+### Fixed
+- payouts: single-operator and DAO-run-node splits were rejected by the Splits SDK
+- payouts: one un-normalisable ENS name (e.g. ab--cd.eth) blocked every split update
+- payouts: a failure before broadcasting used up the day's run
+- registration rejects ENS names that fail normalisation
+
 ## [1.1.0] - 2026-10-01
 
 ### Breaking
