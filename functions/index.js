@@ -33,4 +33,4 @@ exports.generate_node_scores = onSchedule( daily( '0 9 * * *', generous_runtime 
 const { update_split } = require( './daemons/0xsplit' )
 exports.update_split = onSchedule( daily( '30 5 * * *', generous_runtime ), update_split )
 const { trigger_endoweth_distribution } = require( './daemons/endoweth' )
-exports.trigger_endoweth_distribution = onSchedule( daily( '35 5 * * *' ), trigger_endoweth_distribution )
+exports.trigger_endoweth_distribution = onSchedule( daily( '35 5 * * *', generous_runtime ), trigger_endoweth_distribution )
