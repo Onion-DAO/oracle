@@ -11,7 +11,7 @@
     "ncu": "ncu",
     "ncu:dry": "ncu --configFileName .ncurc.major.dry.js",
     "test": "node --test",
-    "prepare": "cd .. && husky functions/.husky",
+    "prepare": "cd .. && husky functions/.husky || true",
     "lint:check": "eslint modules endpoints daemons index.js test"
   },
   "engines": {
