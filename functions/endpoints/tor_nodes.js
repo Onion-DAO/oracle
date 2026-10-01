@@ -178,7 +178,7 @@ route.post( '/', async ( req, res ) => {
         const registration_entry = { ...node_object, created: Date.now(), created_human: new Date().toString(), updated: Date.now(), updated_human: new Date().toString() }
 
         // Format optional properties
-        if( twitter ) registration_entry.twitter = twitter
+        if( twitter ) registration_entry.twitter = `${ twitter }`.replace( /^@/, '' )
 
         // Manage old entry clashes
         const old_node_entry = await db.collection( 'tor_nodes' ).doc( ip ).get()
