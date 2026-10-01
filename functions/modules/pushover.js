@@ -1,7 +1,6 @@
 exports.ping_mentor = async function( { title, message, url='https://oniondao.web.app', priority='0' } ) {
 
     // Dependencies
-    const fetch = require( 'isomorphic-fetch' )
     const { log } = require( './helpers' )
 
     // Ping Mentor
