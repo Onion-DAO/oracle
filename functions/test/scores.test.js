@@ -21,10 +21,16 @@ test( 'history keeps a year, newest last', () => {
     assert.equal( next[ 0 ], 1 )
 } )
 
-test( 'full pre-2026-10 histories restart from their newest sample', () => {
+test( 'full pre-2026-10 histories restart from last month\'s daily average', () => {
     // Old code: first 364 days kept forever, plus the latest
     const legacy = [ ...Array( 364 ).fill( 0 ), 100 ]
-    assert.deepEqual( upgrade_legacy_history( legacy ), [ 100 ] )
+    const upgraded = upgrade_legacy_history( legacy, 2700 )
+    assert.equal( upgraded.length, 30 )
+    assert.equal( recent_average( upgraded, 30 ), 90 )
+} )
+
+test( 'without a monthly counter they restart from their newest sample', () => {
+    assert.deepEqual( upgrade_legacy_history( [ ...Array( 364 ).fill( 0 ), 100 ] ), [ 100 ] )
 } )
 
 test( 'short pre-2026-10 histories were intact and stay', () => {

@@ -7,11 +7,21 @@ const history_version = 2
 
 /**
  * Repairs histories written before 2026-10: once full, they kept the first 364 days plus the latest day,
- * so everything but their newest sample is stale. Shorter histories were never truncated and stay as they are.
+ * so their recent days are lost. Those restart from last month's daily average (from the monthly score counter)
+ * so long-running nodes keep their standing. Shorter histories were never truncated and stay as they are.
  * @param {number[]} history - Stored history of a node without history_version
- * @returns {number[]} Trustworthy part of the history, oldest first
+ * @param {number} [last_month_total] - Sum of last month's daily scores, if known
+ * @returns {number[]} Trustworthy history, oldest first
  */
-const upgrade_legacy_history = ( history=[] ) => history.length >= max_history_days ? history.slice( -1 ) : history
+const upgrade_legacy_history = ( history=[], last_month_total ) => {
+
+    if( history.length < max_history_days ) return history
+
+    const daily_average = last_month_total / 30
+    if( !Number.isFinite( daily_average ) || daily_average < 0 ) return history.slice( -1 )
+    return Array( 30 ).fill( Math.min( daily_average, 100 ) )
+
+}
 
 /**
  * Appends today's value to a history, dropping days older than a year
