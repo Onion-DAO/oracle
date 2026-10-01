@@ -112,7 +112,8 @@ exports.generate_node_scores = async function () {
 
             // Histories written before history_version 2 may hold stale days, see upgrade_legacy_history
             const is_current = node.history_version === history_version
-            const old_score_history = is_current ? stored_score_history : upgrade_legacy_history( stored_score_history )
+            const last_month_total = node[ `${ year_number() }_${ month_number( -1 ) }_counter` ]
+            const old_score_history = is_current ? stored_score_history : upgrade_legacy_history( stored_score_history, last_month_total )
             const old_bandwidth_history = is_current ? stored_bandwidth_history : upgrade_legacy_history( stored_bandwidth_history )
 
             // // If the score history is shorter than 30, import last month's yyyy_mm_dd score, this is intended as a single time import of old data
