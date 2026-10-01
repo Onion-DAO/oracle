@@ -44,10 +44,21 @@ exports.trigger_endoweth_distribution = async function () {
         const run = await claim_daily_run( 'endoweth_distribution' )
         if( !run ) return log( `Distribution already triggered today, skipping` )
 
-        // Sign the transaction
-        const hash = await wallet_client.writeContract( request )
+        // Sign the transaction, a failure before broadcasting releases the day so it can be retried
+        let hash
+        try {
+            hash = await wallet_client.writeContract( request )
+        } catch ( e ) {
+            await run.delete()
+            throw e
+        }
         log( `Signed transaction: https://arbiscan.io/tx/${ hash }` )
-        await run.update( { finished: Date.now(), transaction_hash: hash } )
+        await run.update( { submitted: Date.now(), transaction_hash: hash } )
+
+        // Record the outcome, a reverted distribution shows up in the run log
+        const receipt = await public_client.waitForTransactionReceipt( { hash, timeout: 180_000 } )
+        await run.update( { finished: Date.now(), status: receipt.status } )
+        if( receipt.status !== 'success' ) throw new Error( `Distribution transaction ${ hash } reverted` )
 
         // Ping mentor
         // const { ping_mentor } = require( '../modules/pushover' )
