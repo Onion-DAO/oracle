@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.0] - 2026-10-01
+
+### Breaking
+- Cloud Functions 2nd gen on Node 24 (firebase-functions 7, firebase-admin 14, express 5)
+
+### Changed
+- scheduled jobs keep Los Angeles time and 540 s / 1 GiB, run as the App Engine default account
+- hosting rewrite names the function region
+- ESLint 9 flat config (airier 0.1.1), husky 9 pre-commit lint without --fix
+
 ## [1.1.1] - 2026-10-01
 
 ### Fixed
