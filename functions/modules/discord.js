@@ -4,8 +4,7 @@ exports.ping_discord = async function( { username, content, avatar_url, thread_i
 
         // Dependencies
         const { DISCORD_WEBHOOK_ONIONDAO } = process.env
-        const fetch = require( 'isomorphic-fetch' )
-        const { log } = require( './helpers' )
+            const { log } = require( './helpers' )
 
         // Construct discord webhook message
         const message = {
