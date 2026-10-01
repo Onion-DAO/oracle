@@ -6,13 +6,13 @@
     "serve": "firebase emulators:start  --only functions",
     "shell": "development=true firebase functions:shell",
     "start": "GOOGLE_APPLICATION_CREDENTIALS=\"$(pwd)/../.service-account.json\" development=true npm run shell",
-    "deploy": "firebase deploy --only functions && say done || say fail",
+    "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log --lines 100",
     "ncu": "ncu",
     "ncu:dry": "ncu --configFileName .ncurc.major.dry.js"
   },
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {
