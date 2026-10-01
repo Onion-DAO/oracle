@@ -26,4 +26,4 @@ exports.generate_node_scores = functions.runWith( generous_runtime ).pubsub.sche
 const { update_split } = require( './daemons/0xsplit' )
 exports.update_split = functions.runWith( generous_runtime ).pubsub.schedule( '30 5 * * *' ).onRun( update_split )
 const { trigger_endoweth_distribution } = require( './daemons/endoweth' )
-exports.trigger_endoweth_distribution = functions.pubsub.schedule( '35 5 * * *' ).onRun( trigger_endoweth_distribution )
+exports.trigger_endoweth_distribution = functions.runWith( generous_runtime ).pubsub.schedule( '35 5 * * *' ).onRun( trigger_endoweth_distribution )
