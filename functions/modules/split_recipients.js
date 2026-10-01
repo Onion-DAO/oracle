@@ -1,6 +1,10 @@
 const BigNumber = require( 'bignumber.js' )
 const { eth_address_regex, ens_name_regex } = require( './regex' )
 const { log } = require( './helpers' )
+const { is_normalised_ens } = require( './ens' )
+
+// Smallest share 0xSplits accepts with 4 decimals
+const dust_percent = 0.0001
 
 /**
  * Reward weight of an operator. Scales with bandwidth up to 1 Gbit/s (125 MiB/s), dampened so small nodes still matter.
@@ -27,12 +31,14 @@ const build_split_recipients = async ( nodes, resolve_ens_to_address, dao_addres
         const wallet = `${ node.wallet || '' }`.trim()
         if( eth_address_regex.test( wallet ) ) return { ...node, address: wallet.toLowerCase() }
 
-        if( !ens_name_regex.test( wallet ) ) {
+        // Deterministically unusable names are skipped, a lookup failure still aborts below
+        const ens_name = wallet.toLowerCase()
+        if( !ens_name_regex.test( ens_name ) || !is_normalised_ens( ens_name ) ) {
             log( `Skipping node ${ node.uid }: invalid wallet ${ wallet }` )
             return null
         }
 
-        const address = await resolve_ens_to_address( wallet.toLowerCase() )
+        const address = await resolve_ens_to_address( ens_name )
         if( !address ) {
             log( `Skipping node ${ node.uid }: ${ wallet } has no address` )
             return null
@@ -63,12 +69,38 @@ const build_split_recipients = async ( nodes, resolve_ens_to_address, dao_addres
         cumulative_bandwidth_mib
     } ) )
 
-    // The rounding remainder goes to the DAO
+    // The rounding remainder goes to the DAO, merged into its entry when the DAO also runs a node
+    const dao = `${ dao_address }`.toLowerCase()
     const allocated = recipients.reduce( ( total, { percentAllocation } ) => total.plus( percentAllocation ), new BigNumber( 0 ) )
-    const unallocated = new BigNumber( 100 ).minus( allocated ).toNumber()
-    if( unallocated > 0 ) recipients.push( { address: dao_address, percentAllocation: unallocated, cumulative_bandwidth_mib: 0 } )
+    const unallocated = new BigNumber( 100 ).minus( allocated )
+    const dao_recipient = recipients.find( ( { address } ) => address === dao )
+    if( dao_recipient ) dao_recipient.percentAllocation = unallocated.plus( dao_recipient.percentAllocation ).toNumber()
+    else if( unallocated.gt( 0 ) ) recipients.push( { address: dao, percentAllocation: unallocated.toNumber(), cumulative_bandwidth_mib: 0 } )
 
+    // 0xSplits needs at least two recipients: a single operator hands the smallest possible share to the DAO
+    if( recipients.length === 1 && recipients[ 0 ].address !== dao ) {
+        recipients[ 0 ].percentAllocation = new BigNumber( 100 ).minus( dust_percent ).toNumber()
+        recipients.push( { address: dao, percentAllocation: dust_percent, cumulative_bandwidth_mib: 0 } )
+    }
+
+    assert_valid_split( recipients )
     return recipients
+
+}
+
+/**
+ * Throws unless 0xSplits would accept the recipients, so a broken split never reaches the chain
+ * @param {Object[]} recipients - { address, percentAllocation }
+ */
+const assert_valid_split = recipients => {
+
+    const addresses = recipients.map( ( { address } ) => address )
+    const total = recipients.reduce( ( sum, { percentAllocation } ) => sum.plus( percentAllocation ), new BigNumber( 0 ) )
+
+    if( recipients.length < 2 ) throw new Error( `A split needs at least two recipients, got ${ recipients.length }` )
+    if( new Set( addresses ).size !== addresses.length ) throw new Error( `Split recipients must be unique` )
+    if( recipients.some( ( { percentAllocation } ) => !( percentAllocation > 0 ) ) ) throw new Error( `Every split recipient needs a positive share` )
+    if( !total.eq( 100 ) ) throw new Error( `Split shares add up to ${ total }%, not 100%` )
 
 }
 

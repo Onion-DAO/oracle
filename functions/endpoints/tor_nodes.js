@@ -4,6 +4,7 @@ const { dev, log, require_properties, allow_only_these_properties, http_error, e
 const { db, dataFromSnap } = require( '../modules/firebase' )
 const { check_port_availability, is_public_ipv4 } = require( '../modules/network' )
 const { exit_notice_names_wallet } = require( '../modules/exit_notice' )
+const { is_normalised_ens } = require( '../modules/ens' )
 const { ipv4_regex, email_regex, tor_nickname_regex, bandwidth_regex, reduced_exit_policy_regex, wallet_or_ens_regex, twitter_regex } = require( '../modules/regex' )
 const { register_total_tor_exit_nodes } = require( '../daemons/tor_nodes' )
 
@@ -154,6 +155,7 @@ route.post( '/', async ( req, res ) => {
         if( !`${ node_nickname }`.match( tor_nickname_regex ) ) throw http_error( 400, `Invalid node nickname` )
         if( !`${ reduced_exit_policy }`.match( reduced_exit_policy_regex ) ) throw http_error( 400, `Unexpected exit policy` )
         if( !`${ wallet }`.match( wallet_or_ens_regex ) || wallet.length > 255 ) throw http_error( 400, `Invalid wallet address` )
+        if( /\.eth$/i.test( wallet ) && !is_normalised_ens( wallet.toLowerCase() ) ) throw http_error( 400, `Invalid ENS name` )
         if( twitter && !`${ twitter }`.match( twitter_regex ) ) throw http_error( 400, `Invalid twitter handle` )
 
         // Check port availability for the node

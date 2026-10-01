@@ -87,7 +87,15 @@ exports.update_split = async function() {
         distributorFeePercent: 0,
     }
     log( `Updates:`, updates )
-    const response = await client.updateSplit( updates )
+    // Errors here almost always happen before broadcasting (estimation, validation), release the day so it can be retried.
+    // A repeated split update is harmless: it sets the same recipients again.
+    let response
+    try {
+        response = await client.updateSplit( updates )
+    } catch ( e ) {
+        await run.delete()
+        throw e
+    }
     // const response = { event: { transactionHash: '0x1234567890' } }
     log( `Split updated:`, response )
     const { transactionHash } = response.event
