@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.1] - 2026-10-02
+
+### Fixed
+- chain calls fall back to public chainlist RPCs (chainlist-rpcs) when the configured RPC fails; the keyless 1rpc.io endpoint hit its usage limit and failed most split updates since September
+
 ## [2.0.0] - 2026-10-01
 
 ### Breaking
