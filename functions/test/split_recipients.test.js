@@ -79,7 +79,9 @@ test( 'the DAO running a node gets one merged entry', async () => {
 
 test( 'names ENS normalisation rejects are skipped without a lookup', async () => {
     let lookups = 0
-    const counting_resolver = async name => { lookups++; return resolver( name ) }
+    const counting_resolver = async name => {
+        lookups++; return resolver( name ) 
+    }
     const recipients = await build_split_recipients( [
         { uid: 'a', wallet: 'alice.eth', cumulative_bandwidth_mib: 10 },
         { uid: 'b', wallet: 'ab--cd.eth', cumulative_bandwidth_mib: 10 },
@@ -89,6 +91,6 @@ test( 'names ENS normalisation rejects are skipped without a lookup', async () =
 } )
 
 test( 'many operators always produce a valid split', async () => {
-    const nodes = Array.from( { length: 37 }, ( _, i ) => ( { uid: `${ i }`, wallet: `0x${ `${ i }`.padStart( 40, '0' ) }`, cumulative_bandwidth_mib: ( i * 7 ) % 130 + 1 } ) )
+    const nodes = Array.from( { length: 37 }, ( _, i ) => ( { uid: `${ i }`, wallet: `0x${ `${ i }`.padStart( 40, '0' ) }`, cumulative_bandwidth_mib:  i * 7  % 130 + 1 } ) )
     assert_sdk_valid( await build_split_recipients( nodes, resolver, dao ) )
 } )

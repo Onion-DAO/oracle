@@ -5,7 +5,7 @@ let wallet_client_cache = {}
  * Retrieves or creates a public client for the specified chain.
  * @param {Object} chain - A viem chain object imported from 'viem/chains'.
  * @returns {Promise<Object>} - A promise that resolves to the public client for the specified chain.
- * @throws {Error} - If the RPC endpoint is not found for the specified chain.
+ * @throws {Error} - If no RPC endpoint is known for the specified chain.
  */
 async function get_public_client( chain ) {
 
@@ -19,15 +19,13 @@ async function get_public_client( chain ) {
     if( public_client_cache[ chain.id ] ) return public_client_cache[ chain.id ]
 
     // Dependencies
-    const { createPublicClient, http } = await import( 'viem' )
-    const rpc_endpoint = process.env[ `CHAIN_RPC_${ chain.id }` ]
+    const { createPublicClient } = await import( 'viem' )
+    const { rpc_transport } = require( './rpc' )
 
-    if( !rpc_endpoint ) throw new Error( `RPC endpoint not found for chain ${ chain.id }` )
-
-    // Create public client
+    // Create public client, falling back to public RPCs when the configured one fails
     const publicClient = createPublicClient( {
         chain,
-        transport: http( rpc_endpoint ),
+        transport: await rpc_transport( chain.id ),
     } )
 
     // Cache client
@@ -42,7 +40,7 @@ async function get_public_client( chain ) {
  * @param {Object} chain - A viem chain object imported from 'viem/chains'.
  * @param {String} private_key - The private key to use for the wallet client.
  * @returns {Promise<Object>} - A promise that resolves to the wallet client for the specified chain.
- * @throws {Error} - If the RPC endpoint is not found for the specified chain.
+ * @throws {Error} - If no RPC endpoint is known for the specified chain.
  */
 async function get_wallet_client( chain, private_key ) {
 
@@ -56,20 +54,18 @@ async function get_wallet_client( chain, private_key ) {
     if( wallet_client_cache[ chain.id ] ) return wallet_client_cache[ chain.id ]
 
     // Dependencies
-    const { createWalletClient, http } = await import( 'viem' )
-    const rpc_endpoint = process.env[ `CHAIN_RPC_${ chain.id }` ]
-
-    if( !rpc_endpoint ) throw new Error( `RPC endpoint not found for chain ${ chain.id }` )
+    const { createWalletClient } = await import( 'viem' )
+    const { rpc_transport } = require( './rpc' )
 
     // Initialise account from private key
     const { privateKeyToAccount } = require( 'viem/accounts' )
     const account = privateKeyToAccount( private_key )
 
-    // Create wallet client
+    // Create wallet client, transactions are signed locally so any RPC can broadcast them
     const walletClient = createWalletClient( {
         account,
         chain,
-        transport: http( rpc_endpoint ),
+        transport: await rpc_transport( chain.id ),
     } )
 
     // Cache client
